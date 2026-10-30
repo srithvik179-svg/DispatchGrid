@@ -1,0 +1,3178 @@
+[
+  {
+    "id": "JOB-001",
+    "idempotency_key": "seed-JOB-001",
+    "customer_name": "Pioneer Apartments",
+    "title": "Firewall setup",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.25354,
+      "lng": 76.65143,
+      "address": "18 Industrial Estate Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 45,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [
+      "fiber_splicer"
+    ],
+    "time_window_start": "2026-11-02T13:45:00+05:30",
+    "time_window_end": "2026-11-02T18:15:00+05:30",
+    "sla_deadline": "2026-11-02T18:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T20:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-002",
+    "idempotency_key": "seed-JOB-002",
+    "customer_name": "Silverline Foods",
+    "title": "Power outage in unit",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.25261,
+      "lng": 76.6614,
+      "address": "98 Industrial Estate Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-03T16:00:00+05:30",
+    "time_window_end": "2026-11-03T19:00:00+05:30",
+    "sla_deadline": "2026-11-03T19:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T16:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-003",
+    "idempotency_key": "seed-JOB-003",
+    "customer_name": "Lotus Mall",
+    "title": "Ventilation duct cleaning",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30709,
+      "lng": 76.6442,
+      "address": "66 Temple Street, Central, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T15:00:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T18:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T21:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-004",
+    "idempotency_key": "seed-JOB-004",
+    "customer_name": "Sunrise Labs",
+    "title": "Server room AC failure",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.29847,
+      "lng": 76.73355,
+      "address": "181 Ring Road, East, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T13:00:00+05:30",
+    "time_window_end": "2026-11-02T16:00:00+05:30",
+    "sla_deadline": "2026-11-02T14:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T11:45:00+05:30",
+    "tags": [
+      "crowd_east_hvac"
+    ]
+  },
+  {
+    "id": "JOB-005",
+    "idempotency_key": "seed-JOB-005",
+    "customer_name": "Lotus Bakery",
+    "title": "Switchboard upgrade",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.29127,
+      "lng": 76.64178,
+      "address": "157 Industrial Estate Road, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 60,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T10:45:00+05:30",
+    "time_window_end": "2026-11-03T18:30:00+05:30",
+    "sla_deadline": "2026-11-03T18:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T07:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-006",
+    "idempotency_key": "seed-JOB-006",
+    "customer_name": "Sunrise Mall",
+    "title": "Washing machine repair",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.2882,
+      "lng": 76.57508,
+      "address": "49 Palace Road, West, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 45,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T11:00:00+05:30",
+    "time_window_end": "2026-11-02T14:30:00+05:30",
+    "sla_deadline": "2026-11-02T14:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T23:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-007",
+    "idempotency_key": "seed-JOB-007",
+    "customer_name": "Cedar Showroom",
+    "title": "LAN cabling job",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.31302,
+      "lng": 76.64825,
+      "address": "121 Station Road, Central, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 45,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T15:15:00+05:30",
+    "time_window_end": "2026-11-02T18:45:00+05:30",
+    "sla_deadline": "2026-11-02T17:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T03:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-008",
+    "idempotency_key": "seed-JOB-008",
+    "customer_name": "Metro School",
+    "title": "Firewall setup",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.31622,
+      "lng": 76.58497,
+      "address": "236 Industrial Estate Road, West, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [
+      "fiber_splicer"
+    ],
+    "time_window_start": "2026-11-02T12:15:00+05:30",
+    "time_window_end": "2026-11-02T15:45:00+05:30",
+    "sla_deadline": "2026-11-02T15:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T00:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-009",
+    "idempotency_key": "seed-JOB-009",
+    "customer_name": "Lotus Showroom",
+    "title": "Firewall setup",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.2636,
+      "lng": 76.66096,
+      "address": "153 Lake View Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T12:30:00+05:30",
+    "time_window_end": "2026-11-02T16:15:00+05:30",
+    "sla_deadline": "2026-11-02T16:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T23:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-010",
+    "idempotency_key": "seed-JOB-010",
+    "customer_name": "Evergreen School",
+    "title": "Faulty wiring inspection",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.29019,
+      "lng": 76.56369,
+      "address": "208 Temple Street, West, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 60,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T12:30:00+05:30",
+    "time_window_end": "2026-11-03T17:15:00+05:30",
+    "sla_deadline": "2026-11-03T16:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T15:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-011",
+    "idempotency_key": "seed-JOB-011",
+    "customer_name": "Royal Clinic",
+    "title": "Main distribution panel tripping",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.25904,
+      "lng": 76.64811,
+      "address": "62 MG Road, South, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 60,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-02T15:00:00+05:30",
+    "time_window_end": "2026-11-02T16:30:00+05:30",
+    "sla_deadline": "2026-11-02T16:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T02:00:00+05:30",
+    "tags": [
+      "conflict_pair_B"
+    ]
+  },
+  {
+    "id": "JOB-012",
+    "idempotency_key": "seed-JOB-012",
+    "customer_name": "Silverline Mall",
+    "title": "AC not cooling",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.29131,
+      "lng": 76.71712,
+      "address": "238 Garden Lane, East, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T13:00:00+05:30",
+    "time_window_end": "2026-11-02T16:00:00+05:30",
+    "sla_deadline": "2026-11-02T16:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T07:30:00+05:30",
+    "tags": [
+      "crowd_east_hvac"
+    ]
+  },
+  {
+    "id": "JOB-013",
+    "idempotency_key": "seed-JOB-013",
+    "customer_name": "Silverline School",
+    "title": "Heavy panel lift with mobile crane",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.32066,
+      "lng": 76.67274,
+      "address": "140 Ring Road, Central, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 120,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "crane"
+    ],
+    "time_window_start": "2026-11-03T10:00:00+05:30",
+    "time_window_end": "2026-11-03T16:00:00+05:30",
+    "sla_deadline": "2026-11-03T15:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T14:15:00+05:30",
+    "tags": [
+      "unassignable_missing_equipment"
+    ]
+  },
+  {
+    "id": "JOB-014",
+    "idempotency_key": "seed-JOB-014",
+    "customer_name": "Coastal Logistics",
+    "title": "High-voltage substation maintenance",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.31779,
+      "lng": 76.64159,
+      "address": "180 Garden Lane, Central, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 120,
+    "required_skills": [
+      "high_voltage"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T11:00:00+05:30",
+    "time_window_end": "2026-11-02T17:00:00+05:30",
+    "sla_deadline": "2026-11-02T16:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T11:30:00+05:30",
+    "tags": [
+      "unassignable_missing_skill"
+    ]
+  },
+  {
+    "id": "JOB-015",
+    "idempotency_key": "seed-JOB-015",
+    "customer_name": "Greenfield Mall",
+    "title": "Chiller service",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.30968,
+      "lng": 76.72318,
+      "address": "152 Palace Road, East, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 120,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T15:15:00+05:30",
+    "time_window_end": "2026-11-02T19:15:00+05:30",
+    "sla_deadline": "2026-11-02T19:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T08:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-016",
+    "idempotency_key": "seed-JOB-016",
+    "customer_name": "Lotus Logistics",
+    "title": "AC down - already past SLA",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30368,
+      "lng": 76.66643,
+      "address": "113 Industrial Estate Road, Central, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T09:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T09:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T21:30:00+05:30",
+    "tags": [
+      "sla_already_breached_assign_late"
+    ]
+  },
+  {
+    "id": "JOB-017",
+    "idempotency_key": "seed-JOB-017",
+    "customer_name": "Hillview Logistics",
+    "title": "Remote farm pump-house wiring",
+    "zone_id": "Z6",
+    "location": {
+      "lat": 12.46794,
+      "lng": 76.85173,
+      "address": "166 Industrial Estate Road, Outskirts, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T09:00:00+05:30",
+    "time_window_end": "2026-11-03T17:00:00+05:30",
+    "sla_deadline": "2026-11-03T16:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T07:30:00+05:30",
+    "tags": [
+      "unassignable_no_zone_coverage"
+    ]
+  },
+  {
+    "id": "JOB-018",
+    "idempotency_key": "seed-JOB-018",
+    "customer_name": "Coastal School",
+    "title": "DVR/NVR fault",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.28205,
+      "lng": 76.71566,
+      "address": "179 Garden Lane, East, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 120,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [
+      "ladder"
+    ],
+    "time_window_start": "2026-11-03T10:15:00+05:30",
+    "time_window_end": "2026-11-03T15:30:00+05:30",
+    "sla_deadline": "2026-11-03T15:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T14:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-019",
+    "idempotency_key": "seed-JOB-019",
+    "customer_name": "Hillview Showroom",
+    "title": "Circuit breaker replacement",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.28218,
+      "lng": 76.57592,
+      "address": "148 Garden Lane, West, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 60,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-02T14:45:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T00:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-020",
+    "idempotency_key": "seed-JOB-020",
+    "customer_name": "Pioneer Mall",
+    "title": "Wi-Fi dead zone fix",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.37133,
+      "lng": 76.65363,
+      "address": "166 Market Street, North, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 90,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T15:45:00+05:30",
+    "time_window_end": "2026-11-03T18:45:00+05:30",
+    "sla_deadline": "2026-11-03T18:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T14:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-021",
+    "idempotency_key": "seed-JOB-021",
+    "customer_name": "Heritage Textiles",
+    "title": "LAN cabling job",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.36645,
+      "lng": 76.62566,
+      "address": "141 MG Road, North, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 60,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [
+      "fiber_splicer"
+    ],
+    "time_window_start": "2026-11-03T12:15:00+05:30",
+    "time_window_end": "2026-11-03T19:30:00+05:30",
+    "sla_deadline": "2026-11-03T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T12:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-022",
+    "idempotency_key": "seed-JOB-022",
+    "customer_name": "Maple Logistics",
+    "title": "Wi-Fi dead zone fix",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.34782,
+      "lng": 76.64052,
+      "address": "228 Industrial Estate Road, North, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 45,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T12:15:00+05:30",
+    "time_window_end": "2026-11-03T16:00:00+05:30",
+    "sla_deadline": "2026-11-03T15:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T13:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-023",
+    "idempotency_key": "seed-JOB-023",
+    "customer_name": "Hillview School",
+    "title": "LAN cabling job",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.31751,
+      "lng": 76.65793,
+      "address": "127 Garden Lane, Central, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 60,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T15:15:00+05:30",
+    "time_window_end": "2026-11-02T18:30:00+05:30",
+    "sla_deadline": "2026-11-02T18:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T05:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-024",
+    "idempotency_key": "seed-JOB-024",
+    "customer_name": "Silverline Apartments",
+    "title": "Panel cleaning and inspection",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30828,
+      "lng": 76.63793,
+      "address": "88 Station Road, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 180,
+    "required_skills": [
+      "solar"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T11:15:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T11:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-025",
+    "idempotency_key": "seed-JOB-025",
+    "customer_name": "Lotus Logistics",
+    "title": "Blocked drain clearance",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.2987,
+      "lng": 76.73797,
+      "address": "209 Palace Road, East, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 120,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T11:45:00+05:30",
+    "time_window_end": "2026-11-02T15:45:00+05:30",
+    "sla_deadline": "2026-11-02T15:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T21:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-026",
+    "idempotency_key": "seed-JOB-026",
+    "customer_name": "Pioneer Logistics",
+    "title": "Power outage in unit + cctv",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.31052,
+      "lng": 76.58016,
+      "address": "3 Market Street, West, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 150,
+    "required_skills": [
+      "electrical",
+      "cctv"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-02T10:30:00+05:30",
+    "time_window_end": "2026-11-02T18:45:00+05:30",
+    "sla_deadline": "2026-11-02T18:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T06:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-027",
+    "idempotency_key": "seed-JOB-027",
+    "customer_name": "Greenfield Offices",
+    "title": "Access control setup",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.28727,
+      "lng": 76.58499,
+      "address": "24 MG Road, West, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 60,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T11:45:00+05:30",
+    "time_window_end": "2026-11-03T14:30:00+05:30",
+    "sla_deadline": "2026-11-03T14:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T22:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-028",
+    "idempotency_key": "seed-JOB-028",
+    "customer_name": "Evergreen Showroom",
+    "title": "Elevator stuck between floors",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30957,
+      "lng": 76.65234,
+      "address": "147 Industrial Estate Road, Central, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 90,
+    "required_skills": [
+      "elevator"
+    ],
+    "required_equipment": [
+      "scissor_lift"
+    ],
+    "time_window_start": "2026-11-02T12:30:00+05:30",
+    "time_window_end": "2026-11-02T14:30:00+05:30",
+    "sla_deadline": "2026-11-02T14:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T01:45:00+05:30",
+    "tags": [
+      "conflict_pair_A"
+    ]
+  },
+  {
+    "id": "JOB-029",
+    "idempotency_key": "seed-JOB-029",
+    "customer_name": "Pioneer School",
+    "title": "Router/switch configuration",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.2602,
+      "lng": 76.65994,
+      "address": "79 Industrial Estate Road, South, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 90,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T11:00:00+05:30",
+    "time_window_end": "2026-11-02T14:45:00+05:30",
+    "sla_deadline": "2026-11-02T14:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T23:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-030",
+    "idempotency_key": "seed-JOB-030",
+    "customer_name": "Greenfield Textiles",
+    "title": "Dishwasher fault",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.2547,
+      "lng": 76.66032,
+      "address": "55 MG Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 30,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T10:15:00+05:30",
+    "time_window_end": "2026-11-03T15:15:00+05:30",
+    "sla_deadline": "2026-11-03T14:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T19:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-031",
+    "idempotency_key": "seed-JOB-031",
+    "customer_name": "Greenfield Bakery",
+    "title": "AC not cooling",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.2476,
+      "lng": 76.6606,
+      "address": "14 MG Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 120,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T13:30:00+05:30",
+    "time_window_end": "2026-11-02T19:00:00+05:30",
+    "sla_deadline": "2026-11-02T18:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T15:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-032",
+    "idempotency_key": "seed-JOB-032",
+    "customer_name": "Coastal Hotel",
+    "title": "Main distribution panel tripping",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.24234,
+      "lng": 76.63053,
+      "address": "3 Garden Lane, South, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 60,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-02T15:00:00+05:30",
+    "time_window_end": "2026-11-02T16:30:00+05:30",
+    "sla_deadline": "2026-11-02T16:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T19:45:00+05:30",
+    "tags": [
+      "conflict_pair_B"
+    ]
+  },
+  {
+    "id": "JOB-033",
+    "idempotency_key": "seed-JOB-033",
+    "customer_name": "Silverline Offices",
+    "title": "Blocked drain clearance",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.37232,
+      "lng": 76.64419,
+      "address": "219 Industrial Estate Road, North, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 120,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T14:00:00+05:30",
+    "time_window_end": "2026-11-03T17:00:00+05:30",
+    "sla_deadline": "2026-11-03T17:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T12:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-034",
+    "idempotency_key": "seed-JOB-034",
+    "customer_name": "Lotus Foods",
+    "title": "Access control setup",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.24643,
+      "lng": 76.62721,
+      "address": "51 MG Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 120,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [
+      "ladder"
+    ],
+    "time_window_start": "2026-11-02T11:15:00+05:30",
+    "time_window_end": "2026-11-02T17:45:00+05:30",
+    "sla_deadline": "2026-11-02T16:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T22:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-035",
+    "idempotency_key": "seed-JOB-035",
+    "customer_name": "Silverline Hospital",
+    "title": "CCTV camera installation",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.30923,
+      "lng": 76.58304,
+      "address": "105 Market Street, West, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 120,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T09:15:00+05:30",
+    "time_window_end": "2026-11-03T11:45:00+05:30",
+    "sla_deadline": "2026-11-03T11:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T05:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-036",
+    "idempotency_key": "seed-JOB-036",
+    "customer_name": "Metro Textiles",
+    "title": "Washing machine repair",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.31098,
+      "lng": 76.67111,
+      "address": "84 MG Road, Central, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T10:30:00+05:30",
+    "time_window_end": "2026-11-02T13:30:00+05:30",
+    "sla_deadline": "2026-11-02T13:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T03:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-037",
+    "idempotency_key": "seed-JOB-037",
+    "customer_name": "Maple Apartments",
+    "title": "Circuit breaker replacement",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.24202,
+      "lng": 76.63468,
+      "address": "176 MG Road, South, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 90,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T12:15:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T23:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-038",
+    "idempotency_key": "seed-JOB-038",
+    "customer_name": "Greenfield Hotel",
+    "title": "Leaking pipe repair",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.23292,
+      "lng": 76.64414,
+      "address": "175 Ring Road, South, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 45,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T13:15:00+05:30",
+    "time_window_end": "2026-11-02T15:00:00+05:30",
+    "sla_deadline": "2026-11-02T15:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T01:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-039",
+    "idempotency_key": "seed-JOB-039",
+    "customer_name": "Maple Showroom",
+    "title": "Leaking pipe repair",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.29761,
+      "lng": 76.64109,
+      "address": "108 Station Road, Central, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 90,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T13:15:00+05:30",
+    "time_window_end": "2026-11-03T15:30:00+05:30",
+    "sla_deadline": "2026-11-03T15:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T04:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-040",
+    "idempotency_key": "seed-JOB-040",
+    "customer_name": "Evergreen Showroom",
+    "title": "Pressure pump service",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.29329,
+      "lng": 76.70907,
+      "address": "119 Station Road, East, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [
+      "pipe_wrench"
+    ],
+    "time_window_start": "2026-11-03T14:15:00+05:30",
+    "time_window_end": "2026-11-03T19:30:00+05:30",
+    "sla_deadline": "2026-11-03T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T10:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-041",
+    "idempotency_key": "seed-JOB-041",
+    "customer_name": "Evergreen Foods",
+    "title": "Washing machine repair",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30237,
+      "lng": 76.65265,
+      "address": "160 Market Street, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 60,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T13:30:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T17:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-042",
+    "idempotency_key": "seed-JOB-042",
+    "customer_name": "Orchid Mall",
+    "title": "Pressure pump service",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.26309,
+      "lng": 76.64789,
+      "address": "91 Industrial Estate Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 120,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T14:30:00+05:30",
+    "time_window_end": "2026-11-02T19:15:00+05:30",
+    "sla_deadline": "2026-11-02T19:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T01:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-043",
+    "idempotency_key": "seed-JOB-043",
+    "customer_name": "Bluebird Bakery",
+    "title": "Water heater fault",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.30524,
+      "lng": 76.70987,
+      "address": "226 Industrial Estate Road, East, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 45,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T10:30:00+05:30",
+    "time_window_end": "2026-11-03T14:30:00+05:30",
+    "sla_deadline": "2026-11-03T13:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T22:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-044",
+    "idempotency_key": "seed-JOB-044",
+    "customer_name": "Maple Hospital",
+    "title": "Leaking pipe repair",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.25179,
+      "lng": 76.63885,
+      "address": "105 Market Street, South, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 45,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [
+      "pipe_wrench"
+    ],
+    "time_window_start": "2026-11-03T14:00:00+05:30",
+    "time_window_end": "2026-11-03T19:30:00+05:30",
+    "sla_deadline": "2026-11-03T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T01:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-045",
+    "idempotency_key": "seed-JOB-045",
+    "customer_name": "Maple Clinic",
+    "title": "Chiller service",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.24768,
+      "lng": 76.63382,
+      "address": "8 Industrial Estate Road, South, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T14:15:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T01:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-046",
+    "idempotency_key": "seed-JOB-046",
+    "customer_name": "Maple Labs",
+    "title": "Elevator annual inspection",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.34988,
+      "lng": 76.64062,
+      "address": "68 Ring Road, North, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 180,
+    "required_skills": [
+      "elevator"
+    ],
+    "required_equipment": [
+      "scissor_lift"
+    ],
+    "time_window_start": "2026-11-03T14:45:00+05:30",
+    "time_window_end": "2026-11-03T19:30:00+05:30",
+    "sla_deadline": "2026-11-03T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T18:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-047",
+    "idempotency_key": "seed-JOB-047",
+    "customer_name": "Orchid Labs",
+    "title": "LAN cabling job",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.28335,
+      "lng": 76.57436,
+      "address": "51 Ring Road, West, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 60,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T10:45:00+05:30",
+    "time_window_end": "2026-11-03T13:45:00+05:30",
+    "sla_deadline": "2026-11-03T13:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T05:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-048",
+    "idempotency_key": "seed-JOB-048",
+    "customer_name": "Metro School",
+    "title": "Fibre backbone outage",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.3513,
+      "lng": 76.63452,
+      "address": "238 Market Street, North, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 60,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [
+      "fiber_splicer"
+    ],
+    "time_window_start": "2026-11-03T10:00:00+05:30",
+    "time_window_end": "2026-11-03T11:30:00+05:30",
+    "sla_deadline": "2026-11-03T11:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T00:15:00+05:30",
+    "tags": [
+      "conflict_pair_C"
+    ]
+  },
+  {
+    "id": "JOB-049",
+    "idempotency_key": "seed-JOB-049",
+    "customer_name": "Hillview Residency",
+    "title": "Refrigerator compressor check",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.26595,
+      "lng": 76.63443,
+      "address": "173 Lake View Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 45,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T11:15:00+05:30",
+    "time_window_end": "2026-11-02T14:00:00+05:30",
+    "sla_deadline": "2026-11-02T14:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T03:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-050",
+    "idempotency_key": "seed-JOB-050",
+    "customer_name": "Silverline Showroom",
+    "title": "CCTV camera installation",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.31522,
+      "lng": 76.57808,
+      "address": "3 Ring Road, West, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 120,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T13:45:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T17:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-051",
+    "idempotency_key": "seed-JOB-051",
+    "customer_name": "Cedar Hotel",
+    "title": "Inverter fault diagnosis",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.26758,
+      "lng": 76.65978,
+      "address": "169 Market Street, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 150,
+    "required_skills": [
+      "solar"
+    ],
+    "required_equipment": [
+      "ladder"
+    ],
+    "time_window_start": "2026-11-02T13:45:00+05:30",
+    "time_window_end": "2026-11-02T17:45:00+05:30",
+    "sla_deadline": "2026-11-02T17:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T12:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-052",
+    "idempotency_key": "seed-JOB-052",
+    "customer_name": "Evergreen Mall",
+    "title": "Firewall setup + cctv",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.25179,
+      "lng": 76.62828,
+      "address": "226 Garden Lane, South, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 90,
+    "required_skills": [
+      "networking",
+      "cctv"
+    ],
+    "required_equipment": [
+      "fiber_splicer"
+    ],
+    "time_window_start": "2026-11-03T15:15:00+05:30",
+    "time_window_end": "2026-11-03T19:30:00+05:30",
+    "sla_deadline": "2026-11-03T18:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T16:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-053",
+    "idempotency_key": "seed-JOB-053",
+    "customer_name": "Lotus Villas",
+    "title": "Faulty wiring inspection",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.25024,
+      "lng": 76.63696,
+      "address": "215 Temple Street, South, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 120,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-03T15:00:00+05:30",
+    "time_window_end": "2026-11-03T19:00:00+05:30",
+    "sla_deadline": "2026-11-03T18:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T13:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-054",
+    "idempotency_key": "seed-JOB-054",
+    "customer_name": "Coastal Showroom",
+    "title": "Access control setup",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30374,
+      "lng": 76.65027,
+      "address": "54 Ring Road, Central, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 120,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T11:45:00+05:30",
+    "time_window_end": "2026-11-02T16:30:00+05:30",
+    "sla_deadline": "2026-11-02T16:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T05:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-055",
+    "idempotency_key": "seed-JOB-055",
+    "customer_name": "Cedar Foods",
+    "title": "Blocked drain clearance",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.29163,
+      "lng": 76.66189,
+      "address": "148 Market Street, Central, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 90,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T11:15:00+05:30",
+    "time_window_end": "2026-11-02T13:15:00+05:30",
+    "sla_deadline": "2026-11-02T13:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T04:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-056",
+    "idempotency_key": "seed-JOB-056",
+    "customer_name": "Silverline Logistics",
+    "title": "DVR/NVR fault",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30619,
+      "lng": 76.64631,
+      "address": "143 Ring Road, Central, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 90,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T11:15:00+05:30",
+    "time_window_end": "2026-11-03T14:15:00+05:30",
+    "sla_deadline": "2026-11-03T14:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T14:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-057",
+    "idempotency_key": "seed-JOB-057",
+    "customer_name": "Silverline Foods",
+    "title": "Elevator + electrical + HVAC retrofit",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.32037,
+      "lng": 76.64656,
+      "address": "125 Garden Lane, Central, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 180,
+    "required_skills": [
+      "elevator",
+      "electrical",
+      "hvac"
+    ],
+    "required_equipment": [
+      "scissor_lift"
+    ],
+    "time_window_start": "2026-11-03T10:00:00+05:30",
+    "time_window_end": "2026-11-03T17:00:00+05:30",
+    "sla_deadline": "2026-11-03T16:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T01:15:00+05:30",
+    "tags": [
+      "unassignable_no_single_tech_with_all_skills"
+    ]
+  },
+  {
+    "id": "JOB-058",
+    "idempotency_key": "seed-JOB-058",
+    "customer_name": "Cedar Hotel",
+    "title": "Water heater fault",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.25222,
+      "lng": 76.63693,
+      "address": "221 Station Road, South, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 60,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T14:45:00+05:30",
+    "time_window_end": "2026-11-03T16:30:00+05:30",
+    "sla_deadline": "2026-11-03T16:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T03:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-059",
+    "idempotency_key": "seed-JOB-059",
+    "customer_name": "Hillview Mall",
+    "title": "AC not cooling",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.30272,
+      "lng": 76.72957,
+      "address": "210 MG Road, East, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T13:00:00+05:30",
+    "time_window_end": "2026-11-02T16:00:00+05:30",
+    "sla_deadline": "2026-11-02T16:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T14:15:00+05:30",
+    "tags": [
+      "crowd_east_hvac"
+    ]
+  },
+  {
+    "id": "JOB-060",
+    "idempotency_key": "seed-JOB-060",
+    "customer_name": "Maple Logistics",
+    "title": "Power outage in unit",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.23645,
+      "lng": 76.66183,
+      "address": "211 Palace Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T14:30:00+05:30",
+    "time_window_end": "2026-11-03T17:45:00+05:30",
+    "sla_deadline": "2026-11-03T17:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T13:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-061",
+    "idempotency_key": "seed-JOB-061",
+    "customer_name": "Evergreen Residency",
+    "title": "Solar inverter outage (early slot)",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.31109,
+      "lng": 76.72208,
+      "address": "233 MG Road, East, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 45,
+    "required_skills": [
+      "solar"
+    ],
+    "required_equipment": [
+      "ladder"
+    ],
+    "time_window_start": "2026-11-03T09:00:00+05:30",
+    "time_window_end": "2026-11-03T09:50:00+05:30",
+    "sla_deadline": "2026-11-03T09:50:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T12:45:00+05:30",
+    "tags": [
+      "unassignable_cannot_reach_in_time"
+    ]
+  },
+  {
+    "id": "JOB-062",
+    "idempotency_key": "seed-JOB-062",
+    "customer_name": "Coastal Clinic",
+    "title": "Firewall setup + cctv",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.31049,
+      "lng": 76.65924,
+      "address": "156 Palace Road, Central, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 150,
+    "required_skills": [
+      "networking",
+      "cctv"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T14:00:00+05:30",
+    "time_window_end": "2026-11-03T18:15:00+05:30",
+    "sla_deadline": "2026-11-03T18:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T09:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-063",
+    "idempotency_key": "seed-JOB-063",
+    "customer_name": "Bluebird Textiles",
+    "title": "Elevator stuck between floors",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.29149,
+      "lng": 76.65529,
+      "address": "132 Temple Street, Central, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 90,
+    "required_skills": [
+      "elevator"
+    ],
+    "required_equipment": [
+      "scissor_lift"
+    ],
+    "time_window_start": "2026-11-02T12:30:00+05:30",
+    "time_window_end": "2026-11-02T14:30:00+05:30",
+    "sla_deadline": "2026-11-02T14:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T18:45:00+05:30",
+    "tags": [
+      "conflict_pair_A"
+    ]
+  },
+  {
+    "id": "JOB-064",
+    "idempotency_key": "seed-JOB-064",
+    "customer_name": "Silverline Logistics",
+    "title": "Camera realignment",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.31032,
+      "lng": 76.71022,
+      "address": "5 Ring Road, East, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 60,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T14:15:00+05:30",
+    "time_window_end": "2026-11-03T18:00:00+05:30",
+    "sla_deadline": "2026-11-03T17:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T06:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-065",
+    "idempotency_key": "seed-JOB-065",
+    "customer_name": "Heritage Foods",
+    "title": "Switchboard upgrade",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.30281,
+      "lng": 76.56481,
+      "address": "99 Palace Road, West, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 45,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-02T15:30:00+05:30",
+    "time_window_end": "2026-11-02T18:00:00+05:30",
+    "sla_deadline": "2026-11-02T17:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T06:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-066",
+    "idempotency_key": "seed-JOB-066",
+    "customer_name": "Heritage Clinic",
+    "title": "Pressure pump service",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.2423,
+      "lng": 76.65656,
+      "address": "143 Palace Road, South, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 60,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T11:15:00+05:30",
+    "time_window_end": "2026-11-03T16:30:00+05:30",
+    "sla_deadline": "2026-11-03T16:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T07:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-067",
+    "idempotency_key": "seed-JOB-067",
+    "customer_name": "Coastal Clinic",
+    "title": "Power outage in unit",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.31092,
+      "lng": 76.65379,
+      "address": "106 Temple Street, Central, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 45,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T10:30:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T21:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-068",
+    "idempotency_key": "seed-JOB-068",
+    "customer_name": "Metro Residency",
+    "title": "Power outage in unit",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.33997,
+      "lng": 76.65005,
+      "address": "23 Garden Lane, North, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 120,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-02T13:15:00+05:30",
+    "time_window_end": "2026-11-02T19:15:00+05:30",
+    "sla_deadline": "2026-11-02T19:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T16:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-069",
+    "idempotency_key": "seed-JOB-069",
+    "customer_name": "Pioneer Residency",
+    "title": "Oven not heating",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.26301,
+      "lng": 76.65153,
+      "address": "237 Ring Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [
+      "appliance_toolkit"
+    ],
+    "time_window_start": "2026-11-02T14:00:00+05:30",
+    "time_window_end": "2026-11-02T18:30:00+05:30",
+    "sla_deadline": "2026-11-02T18:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T10:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-070",
+    "idempotency_key": "seed-JOB-070",
+    "customer_name": "Bluebird Logistics",
+    "title": "Full plumbing overhaul (long job)",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.36875,
+      "lng": 76.65658,
+      "address": "206 Industrial Estate Road, North, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 240,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T10:00:00+05:30",
+    "time_window_end": "2026-11-03T12:00:00+05:30",
+    "sla_deadline": "2026-11-03T12:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T10:00:00+05:30",
+    "tags": [
+      "unassignable_window_shorter_than_duration"
+    ]
+  },
+  {
+    "id": "JOB-071",
+    "idempotency_key": "seed-JOB-071",
+    "customer_name": "Pioneer Mall",
+    "title": "Battery bank service",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.2987,
+      "lng": 76.56072,
+      "address": "4 Palace Road, West, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 150,
+    "required_skills": [
+      "solar"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T13:15:00+05:30",
+    "time_window_end": "2026-11-02T17:15:00+05:30",
+    "sla_deadline": "2026-11-02T17:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T03:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-072",
+    "idempotency_key": "seed-JOB-072",
+    "customer_name": "Bluebird Offices",
+    "title": "Server room AC failure",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.29528,
+      "lng": 76.7186,
+      "address": "24 Palace Road, East, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T13:00:00+05:30",
+    "time_window_end": "2026-11-02T16:00:00+05:30",
+    "sla_deadline": "2026-11-02T14:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T21:45:00+05:30",
+    "tags": [
+      "crowd_east_hvac"
+    ]
+  },
+  {
+    "id": "JOB-073",
+    "idempotency_key": "seed-JOB-073",
+    "customer_name": "Bluebird Labs",
+    "title": "Power outage in unit",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.30222,
+      "lng": 76.73211,
+      "address": "58 Industrial Estate Road, East, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 120,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T14:45:00+05:30",
+    "time_window_end": "2026-11-03T19:30:00+05:30",
+    "sla_deadline": "2026-11-03T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T00:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-074",
+    "idempotency_key": "seed-JOB-074",
+    "customer_name": "Sunrise Textiles",
+    "title": "Door sensor fault",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.24582,
+      "lng": 76.65992,
+      "address": "182 Ring Road, South, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 180,
+    "required_skills": [
+      "elevator"
+    ],
+    "required_equipment": [
+      "scissor_lift"
+    ],
+    "time_window_start": "2026-11-03T09:45:00+05:30",
+    "time_window_end": "2026-11-03T14:45:00+05:30",
+    "sla_deadline": "2026-11-03T14:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T19:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-075",
+    "idempotency_key": "seed-JOB-075",
+    "customer_name": "Sunrise Bakery",
+    "title": "After-hours CCTV audit",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30279,
+      "lng": 76.6478,
+      "address": "69 MG Road, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 60,
+    "required_skills": [
+      "cctv"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T22:00:00+05:30",
+    "time_window_end": "2026-11-02T23:30:00+05:30",
+    "sla_deadline": "2026-11-02T23:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T15:15:00+05:30",
+    "tags": [
+      "unassignable_outside_all_shifts"
+    ]
+  },
+  {
+    "id": "JOB-076",
+    "idempotency_key": "seed-JOB-076",
+    "customer_name": "Sunrise Villas",
+    "title": "Circuit breaker replacement",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.29877,
+      "lng": 76.66467,
+      "address": "177 Ring Road, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 45,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T12:30:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T02:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-077",
+    "idempotency_key": "seed-JOB-077",
+    "customer_name": "Lotus Mall",
+    "title": "Power outage in unit",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.26042,
+      "lng": 76.66088,
+      "address": "46 Lake View Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 60,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T15:00:00+05:30",
+    "time_window_end": "2026-11-02T17:30:00+05:30",
+    "sla_deadline": "2026-11-02T17:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T12:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-078",
+    "idempotency_key": "seed-JOB-078",
+    "customer_name": "Pioneer Residency",
+    "title": "Circuit breaker replacement",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.28583,
+      "lng": 76.71375,
+      "address": "28 Temple Street, East, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [
+      "multimeter"
+    ],
+    "time_window_start": "2026-11-02T15:15:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T17:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-079",
+    "idempotency_key": "seed-JOB-079",
+    "customer_name": "Pioneer Hospital",
+    "title": "Power outage in unit",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.30924,
+      "lng": 76.7079,
+      "address": "49 Temple Street, East, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 45,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T13:15:00+05:30",
+    "time_window_end": "2026-11-02T17:45:00+05:30",
+    "sla_deadline": "2026-11-02T17:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T05:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-080",
+    "idempotency_key": "seed-JOB-080",
+    "customer_name": "Bluebird Residency",
+    "title": "Chiller service + plumbing",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.28226,
+      "lng": 76.57424,
+      "address": "12 Garden Lane, West, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 150,
+    "required_skills": [
+      "hvac",
+      "plumbing"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T15:30:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T04:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-081",
+    "idempotency_key": "seed-JOB-081",
+    "customer_name": "Royal Labs",
+    "title": "Refrigerator compressor check",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.35385,
+      "lng": 76.62268,
+      "address": "20 Lake View Road, North, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 45,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T13:00:00+05:30",
+    "time_window_end": "2026-11-02T16:00:00+05:30",
+    "sla_deadline": "2026-11-02T15:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T00:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-082",
+    "idempotency_key": "seed-JOB-082",
+    "customer_name": "Silverline Labs",
+    "title": "Blocked drain clearance",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.26211,
+      "lng": 76.64378,
+      "address": "95 Ring Road, South, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 90,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [
+      "pipe_wrench"
+    ],
+    "time_window_start": "2026-11-02T10:30:00+05:30",
+    "time_window_end": "2026-11-02T18:45:00+05:30",
+    "sla_deadline": "2026-11-02T18:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T10:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-083",
+    "idempotency_key": "seed-JOB-083",
+    "customer_name": "Pioneer Villas",
+    "title": "AC not cooling",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.29994,
+      "lng": 76.70619,
+      "address": "130 Garden Lane, East, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T13:00:00+05:30",
+    "time_window_end": "2026-11-02T16:00:00+05:30",
+    "sla_deadline": "2026-11-02T16:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T23:30:00+05:30",
+    "tags": [
+      "crowd_east_hvac"
+    ]
+  },
+  {
+    "id": "JOB-084",
+    "idempotency_key": "seed-JOB-084",
+    "customer_name": "Lotus Bakery",
+    "title": "Ventilation duct cleaning",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.29384,
+      "lng": 76.70624,
+      "address": "69 Garden Lane, East, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 150,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T15:00:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T22:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-085",
+    "idempotency_key": "seed-JOB-085",
+    "customer_name": "Sunrise Hospital",
+    "title": "Circuit breaker replacement",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.32094,
+      "lng": 76.63761,
+      "address": "81 Station Road, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 45,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T13:45:00+05:30",
+    "time_window_end": "2026-11-02T18:00:00+05:30",
+    "sla_deadline": "2026-11-02T18:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T12:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-086",
+    "idempotency_key": "seed-JOB-086",
+    "customer_name": "Lotus Offices",
+    "title": "Router/switch configuration",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.29419,
+      "lng": 76.64627,
+      "address": "31 Palace Road, Central, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 60,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T15:45:00+05:30",
+    "time_window_end": "2026-11-03T18:45:00+05:30",
+    "sla_deadline": "2026-11-03T18:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T15:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-087",
+    "idempotency_key": "seed-JOB-087",
+    "customer_name": "Greenfield Bakery",
+    "title": "AC not cooling",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.36781,
+      "lng": 76.64863,
+      "address": "48 Temple Street, North, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 150,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T12:15:00+05:30",
+    "time_window_end": "2026-11-02T16:45:00+05:30",
+    "sla_deadline": "2026-11-02T16:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T19:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-088",
+    "idempotency_key": "seed-JOB-088",
+    "customer_name": "Pioneer Villas",
+    "title": "Switchboard upgrade",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.31549,
+      "lng": 76.66222,
+      "address": "94 Temple Street, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 45,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T15:15:00+05:30",
+    "time_window_end": "2026-11-03T19:30:00+05:30",
+    "sla_deadline": "2026-11-03T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T16:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-089",
+    "idempotency_key": "seed-JOB-089",
+    "customer_name": "Greenfield Villas",
+    "title": "AC not cooling",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.28569,
+      "lng": 76.7244,
+      "address": "121 Lake View Road, East, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [
+      "hvac_gauge"
+    ],
+    "time_window_start": "2026-11-02T13:00:00+05:30",
+    "time_window_end": "2026-11-02T16:00:00+05:30",
+    "sla_deadline": "2026-11-02T16:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T18:30:00+05:30",
+    "tags": [
+      "crowd_east_hvac"
+    ]
+  },
+  {
+    "id": "JOB-090",
+    "idempotency_key": "seed-JOB-090",
+    "customer_name": "Greenfield Hospital",
+    "title": "Faulty wiring inspection",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.28967,
+      "lng": 76.67196,
+      "address": "106 Garden Lane, Central, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T10:15:00+05:30",
+    "time_window_end": "2026-11-03T15:30:00+05:30",
+    "sla_deadline": "2026-11-03T15:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T16:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-091",
+    "idempotency_key": "seed-JOB-091",
+    "customer_name": "Hillview School",
+    "title": "Firewall setup",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.26418,
+      "lng": 76.66122,
+      "address": "209 Industrial Estate Road, South, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T15:30:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T06:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-092",
+    "idempotency_key": "seed-JOB-092",
+    "customer_name": "Coastal Labs",
+    "title": "Ventilation duct cleaning",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30999,
+      "lng": 76.66436,
+      "address": "82 MG Road, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T14:00:00+05:30",
+    "time_window_end": "2026-11-03T19:30:00+05:30",
+    "sla_deadline": "2026-11-03T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T08:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-093",
+    "idempotency_key": "seed-JOB-093",
+    "customer_name": "Silverline Residency",
+    "title": "Fibre backbone outage",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.35996,
+      "lng": 76.64803,
+      "address": "23 Industrial Estate Road, North, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 60,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [
+      "fiber_splicer"
+    ],
+    "time_window_start": "2026-11-03T10:00:00+05:30",
+    "time_window_end": "2026-11-03T11:30:00+05:30",
+    "sla_deadline": "2026-11-03T11:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T14:45:00+05:30",
+    "tags": [
+      "conflict_pair_C"
+    ]
+  },
+  {
+    "id": "JOB-094",
+    "idempotency_key": "seed-JOB-094",
+    "customer_name": "Maple Labs",
+    "title": "Oven not heating",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.35666,
+      "lng": 76.65067,
+      "address": "211 Industrial Estate Road, North, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 60,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T09:30:00+05:30",
+    "time_window_end": "2026-11-03T13:45:00+05:30",
+    "sla_deadline": "2026-11-03T13:45:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T15:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-095",
+    "idempotency_key": "seed-JOB-095",
+    "customer_name": "Sunrise Clinic",
+    "title": "Switchboard upgrade",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30667,
+      "lng": 76.64271,
+      "address": "82 Lake View Road, Central, Mysuru"
+    },
+    "priority": 1,
+    "priority_label": "urgent",
+    "duration_minutes": 120,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T15:30:00+05:30",
+    "time_window_end": "2026-11-02T18:30:00+05:30",
+    "sla_deadline": "2026-11-02T18:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T08:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-096",
+    "idempotency_key": "seed-JOB-096",
+    "customer_name": "Silverline Offices",
+    "title": "Cabin vibration check",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.36143,
+      "lng": 76.65285,
+      "address": "94 Palace Road, North, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 90,
+    "required_skills": [
+      "elevator"
+    ],
+    "required_equipment": [
+      "scissor_lift"
+    ],
+    "time_window_start": "2026-11-03T11:00:00+05:30",
+    "time_window_end": "2026-11-03T15:00:00+05:30",
+    "sla_deadline": "2026-11-03T14:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T10:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-097",
+    "idempotency_key": "seed-JOB-097",
+    "customer_name": "Hillview Mall",
+    "title": "Rooftop panel installation",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30188,
+      "lng": 76.65261,
+      "address": "18 Ring Road, Central, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 120,
+    "required_skills": [
+      "solar"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T14:15:00+05:30",
+    "time_window_end": "2026-11-02T19:00:00+05:30",
+    "sla_deadline": "2026-11-02T19:00:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T23:30:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-098",
+    "idempotency_key": "seed-JOB-098",
+    "customer_name": "Silverline Hospital",
+    "title": "Refrigerator compressor check",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.29333,
+      "lng": 76.55721,
+      "address": "8 Temple Street, West, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 90,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T14:45:00+05:30",
+    "time_window_end": "2026-11-02T19:30:00+05:30",
+    "sla_deadline": "2026-11-02T19:30:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T12:00:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-099",
+    "idempotency_key": "seed-JOB-099",
+    "customer_name": "Royal Residency",
+    "title": "Power outage in unit",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.30721,
+      "lng": 76.65765,
+      "address": "55 Ring Road, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 90,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T13:15:00+05:30",
+    "time_window_end": "2026-11-03T19:15:00+05:30",
+    "sla_deadline": "2026-11-03T19:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-10-31T14:15:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-100",
+    "idempotency_key": "seed-JOB-100",
+    "customer_name": "Hillview Residency",
+    "title": "Leaking pipe repair",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.26761,
+      "lng": 76.63943,
+      "address": "240 Station Road, South, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 90,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-03T13:45:00+05:30",
+    "time_window_end": "2026-11-03T19:15:00+05:30",
+    "sla_deadline": "2026-11-03T19:15:00+05:30",
+    "status": "pending",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-01T02:45:00+05:30",
+    "tags": []
+  },
+  {
+    "id": "JOB-101",
+    "idempotency_key": "seed-JOB-101",
+    "customer_name": "Hillview Mall",
+    "title": "Blocked drain clearance",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.34822,
+      "lng": 76.65747,
+      "address": "123 Garden Lane, North, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 75,
+    "required_skills": [
+      "plumbing"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T08:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "completed",
+    "assigned_technician_id": "T03",
+    "scheduled_start": "2026-11-02T08:00:00+05:30",
+    "scheduled_end": "2026-11-02T09:15:00+05:30",
+    "created_at": "2026-10-31T12:45:00+05:30",
+    "tags": [
+      "pre_existing"
+    ],
+    "actual_start": "2026-11-02T08:00:00+05:30"
+  },
+  {
+    "id": "JOB-102",
+    "idempotency_key": "seed-JOB-102",
+    "customer_name": "Evergreen Clinic",
+    "title": "Thermostat replacement",
+    "zone_id": "Z2",
+    "location": {
+      "lat": 12.36468,
+      "lng": 76.65427,
+      "address": "182 Palace Road, North, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 75,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T08:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "completed",
+    "assigned_technician_id": "T14",
+    "scheduled_start": "2026-11-02T08:15:00+05:30",
+    "scheduled_end": "2026-11-02T09:30:00+05:30",
+    "created_at": "2026-11-02T02:30:00+05:30",
+    "tags": [
+      "pre_existing"
+    ],
+    "actual_start": "2026-11-02T08:15:00+05:30"
+  },
+  {
+    "id": "JOB-103",
+    "idempotency_key": "seed-JOB-103",
+    "customer_name": "Sunrise Bakery",
+    "title": "Circuit breaker replacement",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.243,
+      "lng": 76.63558,
+      "address": "22 Temple Street, South, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 60,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T08:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "completed",
+    "assigned_technician_id": "T05",
+    "scheduled_start": "2026-11-02T08:00:00+05:30",
+    "scheduled_end": "2026-11-02T09:00:00+05:30",
+    "created_at": "2026-11-02T07:15:00+05:30",
+    "tags": [
+      "pre_existing"
+    ],
+    "actual_start": "2026-11-02T08:00:00+05:30"
+  },
+  {
+    "id": "JOB-104",
+    "idempotency_key": "seed-JOB-104",
+    "customer_name": "Evergreen Residency",
+    "title": "Router/switch configuration",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.29083,
+      "lng": 76.71065,
+      "address": "10 MG Road, East, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 90,
+    "required_skills": [
+      "networking"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T08:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "completed",
+    "assigned_technician_id": "T08",
+    "scheduled_start": "2026-11-02T08:00:00+05:30",
+    "scheduled_end": "2026-11-02T09:30:00+05:30",
+    "created_at": "2026-11-02T08:45:00+05:30",
+    "tags": [
+      "pre_existing"
+    ],
+    "actual_start": "2026-11-02T08:00:00+05:30"
+  },
+  {
+    "id": "JOB-105",
+    "idempotency_key": "seed-JOB-105",
+    "customer_name": "Orchid School",
+    "title": "Switchboard upgrade",
+    "zone_id": "Z3",
+    "location": {
+      "lat": 12.25468,
+      "lng": 76.62712,
+      "address": "2 Ring Road, South, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 120,
+    "required_skills": [
+      "electrical"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T08:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "in_progress",
+    "assigned_technician_id": "T05",
+    "scheduled_start": "2026-11-02T09:30:00+05:30",
+    "scheduled_end": "2026-11-02T11:30:00+05:30",
+    "created_at": "2026-11-01T20:30:00+05:30",
+    "tags": [
+      "pre_existing"
+    ],
+    "actual_start": "2026-11-02T09:30:00+05:30"
+  },
+  {
+    "id": "JOB-106",
+    "idempotency_key": "seed-JOB-106",
+    "customer_name": "Greenfield Clinic",
+    "title": "Chiller service",
+    "zone_id": "Z4",
+    "location": {
+      "lat": 12.30919,
+      "lng": 76.73671,
+      "address": "225 Palace Road, East, Mysuru"
+    },
+    "priority": 2,
+    "priority_label": "high",
+    "duration_minutes": 60,
+    "required_skills": [
+      "hvac"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T08:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "in_progress",
+    "assigned_technician_id": "T07",
+    "scheduled_start": "2026-11-02T09:45:00+05:30",
+    "scheduled_end": "2026-11-02T10:45:00+05:30",
+    "created_at": "2026-11-01T11:30:00+05:30",
+    "tags": [
+      "pre_existing"
+    ],
+    "actual_start": "2026-11-02T09:45:00+05:30"
+  },
+  {
+    "id": "JOB-107",
+    "idempotency_key": "seed-JOB-107",
+    "customer_name": "Bluebird Apartments",
+    "title": "Rooftop panel installation",
+    "zone_id": "Z5",
+    "location": {
+      "lat": 12.3147,
+      "lng": 76.55842,
+      "address": "152 Station Road, West, Mysuru"
+    },
+    "priority": 3,
+    "priority_label": "medium",
+    "duration_minutes": 150,
+    "required_skills": [
+      "solar"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T08:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "in_progress",
+    "assigned_technician_id": "T10",
+    "scheduled_start": "2026-11-02T09:30:00+05:30",
+    "scheduled_end": "2026-11-02T12:00:00+05:30",
+    "created_at": "2026-11-02T04:00:00+05:30",
+    "tags": [
+      "pre_existing"
+    ],
+    "actual_start": "2026-11-02T09:30:00+05:30"
+  },
+  {
+    "id": "JOB-108",
+    "idempotency_key": "seed-JOB-108",
+    "customer_name": "Silverline Showroom",
+    "title": "Washing machine repair",
+    "zone_id": "Z1",
+    "location": {
+      "lat": 12.31922,
+      "lng": 76.64218,
+      "address": "113 MG Road, Central, Mysuru"
+    },
+    "priority": 4,
+    "priority_label": "low",
+    "duration_minutes": 45,
+    "required_skills": [
+      "appliance_repair"
+    ],
+    "required_equipment": [],
+    "time_window_start": "2026-11-02T08:00:00+05:30",
+    "time_window_end": "2026-11-02T13:00:00+05:30",
+    "sla_deadline": "2026-11-02T13:00:00+05:30",
+    "status": "cancelled",
+    "assigned_technician_id": null,
+    "scheduled_start": null,
+    "scheduled_end": null,
+    "created_at": "2026-11-02T03:15:00+05:30",
+    "tags": [
+      "pre_existing"
+    ],
+    "actual_start": null
+  }
+]

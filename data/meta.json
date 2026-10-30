@@ -1,0 +1,107 @@
+{
+  "as_of": "2026-11-02T10:00:00+05:30",
+  "time_zone": "Asia/Kolkata (+05:30)",
+  "planning_horizon": {
+    "start": "2026-11-02T00:00:00+05:30",
+    "end": "2026-11-04T00:00:00+05:30"
+  },
+  "travel_model": {
+    "method": "haversine",
+    "speed_kmh": 30,
+    "note": "travel_minutes = distance_km / speed_kmh * 60; a technician's first job starts from home_location"
+  },
+  "conventions": {
+    "time_window": "HARD: service must start >= window_start and end <= window_end",
+    "sla_deadline": "SOFT: latest desired completion time; lateness is penalised in the objective",
+    "priority": {
+      "1": "urgent",
+      "2": "high",
+      "3": "medium",
+      "4": "low"
+    },
+    "technician_zones": "HARD: job zone must be in technician eligible_zones",
+    "shifts": "HARD (overtime up to overtime.max_minutes_per_shift allowed at a penalty if overtime.allowed)",
+    "unavailable_periods": "HARD: no work or overlapping service"
+  },
+  "zones": {
+    "Z1": {
+      "name": "Central",
+      "lat": 12.3052,
+      "lng": 76.6552,
+      "adjacent": [
+        "Z2",
+        "Z3",
+        "Z4",
+        "Z5"
+      ]
+    },
+    "Z2": {
+      "name": "North",
+      "lat": 12.355,
+      "lng": 76.64,
+      "adjacent": [
+        "Z1",
+        "Z4",
+        "Z5"
+      ]
+    },
+    "Z3": {
+      "name": "South",
+      "lat": 12.25,
+      "lng": 76.645,
+      "adjacent": [
+        "Z1",
+        "Z4",
+        "Z5"
+      ]
+    },
+    "Z4": {
+      "name": "East",
+      "lat": 12.3,
+      "lng": 76.72,
+      "adjacent": [
+        "Z1",
+        "Z2",
+        "Z3"
+      ]
+    },
+    "Z5": {
+      "name": "West",
+      "lat": 12.3,
+      "lng": 76.57,
+      "adjacent": [
+        "Z1",
+        "Z2",
+        "Z3"
+      ]
+    },
+    "Z6": {
+      "name": "Outskirts",
+      "lat": 12.45,
+      "lng": 76.85,
+      "adjacent": []
+    }
+  },
+  "skills": [
+    "electrical",
+    "plumbing",
+    "hvac",
+    "networking",
+    "appliance_repair",
+    "solar",
+    "cctv",
+    "elevator"
+  ],
+  "unsupported_skills_in_jobs": [
+    "high_voltage"
+  ],
+  "equipment": [
+    "appliance_toolkit",
+    "fiber_splicer",
+    "hvac_gauge",
+    "ladder",
+    "multimeter",
+    "pipe_wrench",
+    "scissor_lift"
+  ]
+}

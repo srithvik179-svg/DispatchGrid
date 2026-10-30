@@ -1,0 +1,236 @@
+[
+  {
+    "id": "D01",
+    "category": "disruption",
+    "type": "technician_unavailable",
+    "name": "Senior elevator technician goes down",
+    "effective_at": "2026-11-02T11:00:00+05:30",
+    "payload": {
+      "technician_id": "T11",
+      "unavailable_from": "2026-11-02T12:00:00+05:30",
+      "unavailable_to": "2026-11-03T18:00:00+05:30",
+      "reason": "vehicle_breakdown"
+    },
+    "expected_behaviour": "T11's future jobs are reassigned. Elevator work moves to T12 only; conflict_pair_A can no longer both be served on time, so one job is late or unassigned with a specific reason. In-progress work is untouched."
+  },
+  {
+    "id": "D02",
+    "category": "disruption",
+    "type": "urgent_job_arrives",
+    "name": "Urgent plumbing job arrives mid-morning",
+    "effective_at": "2026-11-02T11:30:00+05:30",
+    "payload": {
+      "job": {
+        "idempotency_key": "urgent-0002",
+        "customer_name": "Walk-in Priority Client",
+        "title": "Burst main pipe",
+        "zone_id": "Z1",
+        "priority": 1,
+        "duration_minutes": 60,
+        "required_skills": [
+          "plumbing"
+        ],
+        "required_equipment": [
+          "pipe_wrench"
+        ],
+        "time_window_start": "2026-11-02T11:30:00+05:30",
+        "time_window_end": "2026-11-02T14:00:00+05:30",
+        "sla_deadline": "2026-11-02T13:00:00+05:30",
+        "location": {
+          "lat": 12.3052,
+          "lng": 76.6552,
+          "address": "Central point, Central, Mysuru"
+        }
+      }
+    },
+    "expected_behaviour": "Job inserted with minimal displacement of existing assignments; report lists exactly which lower-priority jobs moved and why."
+  },
+  {
+    "id": "D03",
+    "category": "disruption",
+    "type": "two_urgent_jobs_compete",
+    "name": "Two urgent electrical jobs, same slot",
+    "effective_at": "2026-11-02T12:00:00+05:30",
+    "payload": {
+      "jobs": [
+        {
+          "idempotency_key": "urgent-0003a",
+          "customer_name": "Walk-in Priority Client",
+          "title": "Transformer fault",
+          "zone_id": "Z3",
+          "priority": 1,
+          "duration_minutes": 60,
+          "required_skills": [
+            "electrical"
+          ],
+          "required_equipment": [
+            "multimeter"
+          ],
+          "time_window_start": "2026-11-02T14:00:00+05:30",
+          "time_window_end": "2026-11-02T15:30:00+05:30",
+          "sla_deadline": "2026-11-02T15:15:00+05:30",
+          "location": {
+            "lat": 12.25,
+            "lng": 76.645,
+            "address": "Central point, South, Mysuru"
+          }
+        },
+        {
+          "idempotency_key": "urgent-0003b",
+          "customer_name": "Walk-in Priority Client",
+          "title": "Panel fire hazard",
+          "zone_id": "Z3",
+          "priority": 1,
+          "duration_minutes": 60,
+          "required_skills": [
+            "electrical"
+          ],
+          "required_equipment": [
+            "multimeter"
+          ],
+          "time_window_start": "2026-11-02T14:00:00+05:30",
+          "time_window_end": "2026-11-02T15:30:00+05:30",
+          "sla_deadline": "2026-11-02T15:15:00+05:30",
+          "location": {
+            "lat": 12.25,
+            "lng": 76.645,
+            "address": "Central point, South, Mysuru"
+          }
+        }
+      ]
+    },
+    "expected_behaviour": "Both are assigned to different technicians, or the loser is explained (technician busy / travel too long). A technician is never double-booked."
+  },
+  {
+    "id": "D04",
+    "category": "disruption",
+    "type": "job_duration_changed",
+    "name": "Job takes longer than planned",
+    "effective_at": "2026-11-02T11:00:00+05:30",
+    "payload": {
+      "job_id": "JOB-001",
+      "old_duration_minutes": 45,
+      "new_duration_minutes": 135
+    },
+    "expected_behaviour": "Downstream jobs for that technician shift or move; unchanged assignments are listed as unchanged."
+  },
+  {
+    "id": "D05",
+    "category": "disruption",
+    "type": "job_cancelled",
+    "name": "Customer cancels a job",
+    "effective_at": "2026-11-02T11:00:00+05:30",
+    "payload": {
+      "job_id": "JOB-003"
+    },
+    "expected_behaviour": "Slot freed; previously unassigned jobs may now be placed. Other assignments stay stable."
+  },
+  {
+    "id": "D06",
+    "category": "disruption",
+    "type": "invalid_state_transition",
+    "name": "Cancel an already completed job",
+    "effective_at": "2026-11-02T10:30:00+05:30",
+    "payload": {
+      "job_id": "JOB-101",
+      "target_status": "cancelled"
+    },
+    "expected_behaviour": "Rejected with a clear 4xx error (completed -> cancelled is invalid). No state change."
+  },
+  {
+    "id": "D07",
+    "category": "disruption",
+    "type": "technician_finished_early",
+    "name": "Technician finishes 40 minutes early",
+    "effective_at": "2026-11-02T10:50:00+05:30",
+    "payload": {
+      "job_id": "JOB-105",
+      "technician_id": "T05",
+      "actual_end": "2026-11-02T10:50:00+05:30"
+    },
+    "expected_behaviour": "Job marked completed; T05 gains 40 minutes; later jobs may be pulled forward only if it reduces cost."
+  },
+  {
+    "id": "D08",
+    "category": "disruption",
+    "type": "technician_finished_late",
+    "name": "Technician overruns by one hour",
+    "effective_at": "2026-11-02T11:45:00+05:30",
+    "payload": {
+      "job_id": "JOB-106",
+      "technician_id": "T07",
+      "actual_end": "2026-11-02T11:45:00+05:30"
+    },
+    "expected_behaviour": "T07's next jobs are shifted or reassigned, respecting his 12:00-14:00 vehicle service block."
+  },
+  {
+    "id": "D09",
+    "category": "disruption",
+    "type": "technician_unavailable_during_in_progress",
+    "name": "Technician leaves while a job is in progress",
+    "effective_at": "2026-11-02T10:30:00+05:30",
+    "payload": {
+      "technician_id": "T10",
+      "unavailable_from": "2026-11-02T12:00:00+05:30",
+      "unavailable_to": "2026-11-02T18:00:00+05:30",
+      "reason": "emergency_leave"
+    },
+    "expected_behaviour": "JOB-107 (in progress until 12:00) is protected and not reassigned. T10's later jobs are reassigned or explained."
+  },
+  {
+    "id": "R01",
+    "category": "reliability",
+    "type": "duplicate_request",
+    "name": "Same create-job request submitted twice",
+    "effective_at": "2026-11-02T10:00:00+05:30",
+    "payload": {
+      "request": {
+        "idempotency_key": "dup-test-0001",
+        "customer_name": "Walk-in Priority Client",
+        "title": "Duplicate-submission test job",
+        "zone_id": "Z1",
+        "priority": 3,
+        "duration_minutes": 60,
+        "required_skills": [
+          "plumbing"
+        ],
+        "required_equipment": [
+          "pipe_wrench"
+        ],
+        "time_window_start": "2026-11-03T11:00:00+05:30",
+        "time_window_end": "2026-11-03T15:00:00+05:30",
+        "sla_deadline": "2026-11-03T14:00:00+05:30",
+        "location": {
+          "lat": 12.3052,
+          "lng": 76.6552,
+          "address": "Central point, Central, Mysuru"
+        }
+      },
+      "repeat": 2
+    },
+    "expected_behaviour": "Same idempotency_key -> exactly one job created; second call returns the original job (not a duplicate)."
+  },
+  {
+    "id": "R02",
+    "category": "reliability",
+    "type": "concurrent_scheduling",
+    "name": "Two schedule-generation requests at once",
+    "effective_at": "2026-11-02T10:00:00+05:30",
+    "payload": {
+      "parallel_requests": 2,
+      "endpoint": "generate schedule"
+    },
+    "expected_behaviour": "One run commits; the other waits or is rejected. No technician ends up with overlapping or double-committed assignments."
+  },
+  {
+    "id": "R03",
+    "category": "reliability",
+    "type": "interrupted_run",
+    "name": "Scheduling run crashes midway",
+    "effective_at": "2026-11-02T10:00:00+05:30",
+    "payload": {
+      "simulate_failure_after_assigning": 40
+    },
+    "expected_behaviour": "Run recorded as failed; previous committed schedule remains intact (all-or-nothing commit); a retry succeeds."
+  }
+]

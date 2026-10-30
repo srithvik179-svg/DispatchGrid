@@ -1,0 +1,773 @@
+[
+  {
+    "id": "T01",
+    "name": "Arjun Rao",
+    "home_zone_id": "Z1",
+    "home_location": {
+      "lat": 12.3052,
+      "lng": 76.6552
+    },
+    "eligible_zones": [
+      "Z1",
+      "Z2"
+    ],
+    "skills": [
+      "electrical",
+      "solar"
+    ],
+    "equipment": [
+      "ladder",
+      "multimeter"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 60
+    }
+  },
+  {
+    "id": "T02",
+    "name": "Meera Nair",
+    "home_zone_id": "Z1",
+    "home_location": {
+      "lat": 12.3052,
+      "lng": 76.6552
+    },
+    "eligible_zones": [
+      "Z1",
+      "Z4"
+    ],
+    "skills": [
+      "hvac",
+      "appliance_repair"
+    ],
+    "equipment": [
+      "appliance_toolkit",
+      "hvac_gauge"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [
+      {
+        "start": "2026-11-02T14:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30",
+        "reason": "training"
+      }
+    ],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T03",
+    "name": "Karthik Gowda",
+    "home_zone_id": "Z2",
+    "home_location": {
+      "lat": 12.355,
+      "lng": 76.64
+    },
+    "eligible_zones": [
+      "Z2",
+      "Z1"
+    ],
+    "skills": [
+      "plumbing"
+    ],
+    "equipment": [
+      "pipe_wrench"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T08:00:00+05:30",
+        "end": "2026-11-02T16:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T08:00:00+05:30",
+        "end": "2026-11-03T16:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 60
+    }
+  },
+  {
+    "id": "T04",
+    "name": "Divya Shetty",
+    "home_zone_id": "Z2",
+    "home_location": {
+      "lat": 12.355,
+      "lng": 76.64
+    },
+    "eligible_zones": [
+      "Z2",
+      "Z1",
+      "Z5"
+    ],
+    "skills": [
+      "networking",
+      "cctv"
+    ],
+    "equipment": [
+      "fiber_splicer",
+      "ladder"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T05",
+    "name": "Suresh Kumar",
+    "home_zone_id": "Z3",
+    "home_location": {
+      "lat": 12.25,
+      "lng": 76.645
+    },
+    "eligible_zones": [
+      "Z3",
+      "Z1"
+    ],
+    "skills": [
+      "electrical"
+    ],
+    "equipment": [
+      "multimeter"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T08:00:00+05:30",
+        "end": "2026-11-02T16:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T08:00:00+05:30",
+        "end": "2026-11-03T16:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [
+      {
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T13:00:00+05:30",
+        "reason": "personal_leave"
+      }
+    ],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 120
+    }
+  },
+  {
+    "id": "T06",
+    "name": "Anita Desai",
+    "home_zone_id": "Z3",
+    "home_location": {
+      "lat": 12.25,
+      "lng": 76.645
+    },
+    "eligible_zones": [
+      "Z3",
+      "Z5"
+    ],
+    "skills": [
+      "plumbing",
+      "appliance_repair"
+    ],
+    "equipment": [
+      "appliance_toolkit",
+      "pipe_wrench"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T07",
+    "name": "Rahul Patil",
+    "home_zone_id": "Z4",
+    "home_location": {
+      "lat": 12.3,
+      "lng": 76.72
+    },
+    "eligible_zones": [
+      "Z4",
+      "Z1"
+    ],
+    "skills": [
+      "hvac"
+    ],
+    "equipment": [
+      "hvac_gauge"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [
+      {
+        "start": "2026-11-02T12:00:00+05:30",
+        "end": "2026-11-02T14:00:00+05:30",
+        "reason": "vehicle_service"
+      }
+    ],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 60
+    }
+  },
+  {
+    "id": "T08",
+    "name": "Priya Menon",
+    "home_zone_id": "Z4",
+    "home_location": {
+      "lat": 12.3,
+      "lng": 76.72
+    },
+    "eligible_zones": [
+      "Z4",
+      "Z2"
+    ],
+    "skills": [
+      "networking"
+    ],
+    "equipment": [],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T08:00:00+05:30",
+        "end": "2026-11-02T17:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T08:00:00+05:30",
+        "end": "2026-11-03T17:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T09",
+    "name": "Imran Khan",
+    "home_zone_id": "Z5",
+    "home_location": {
+      "lat": 12.3,
+      "lng": 76.57
+    },
+    "eligible_zones": [
+      "Z5",
+      "Z1"
+    ],
+    "skills": [
+      "electrical",
+      "cctv"
+    ],
+    "equipment": [
+      "ladder",
+      "multimeter"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 60
+    }
+  },
+  {
+    "id": "T10",
+    "name": "Lakshmi Iyer",
+    "home_zone_id": "Z5",
+    "home_location": {
+      "lat": 12.3,
+      "lng": 76.57
+    },
+    "eligible_zones": [
+      "Z5",
+      "Z3"
+    ],
+    "skills": [
+      "solar",
+      "electrical"
+    ],
+    "equipment": [
+      "ladder",
+      "multimeter"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T11",
+    "name": "Vikram Singh",
+    "home_zone_id": "Z1",
+    "home_location": {
+      "lat": 12.3052,
+      "lng": 76.6552
+    },
+    "eligible_zones": [
+      "Z1",
+      "Z2",
+      "Z3",
+      "Z4",
+      "Z5"
+    ],
+    "skills": [
+      "elevator",
+      "electrical"
+    ],
+    "equipment": [
+      "multimeter",
+      "scissor_lift"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 120
+    }
+  },
+  {
+    "id": "T12",
+    "name": "Naveen Reddy",
+    "home_zone_id": "Z4",
+    "home_location": {
+      "lat": 12.3,
+      "lng": 76.72
+    },
+    "eligible_zones": [
+      "Z4",
+      "Z1",
+      "Z2"
+    ],
+    "skills": [
+      "elevator",
+      "hvac"
+    ],
+    "equipment": [
+      "hvac_gauge",
+      "scissor_lift"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T10:00:00+05:30",
+        "end": "2026-11-02T19:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T10:00:00+05:30",
+        "end": "2026-11-03T19:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 60
+    }
+  },
+  {
+    "id": "T13",
+    "name": "Sanjana Hegde",
+    "home_zone_id": "Z1",
+    "home_location": {
+      "lat": 12.3052,
+      "lng": 76.6552
+    },
+    "eligible_zones": [
+      "Z1",
+      "Z3"
+    ],
+    "skills": [
+      "cctv",
+      "networking"
+    ],
+    "equipment": [
+      "fiber_splicer",
+      "ladder"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [
+      {
+        "start": "2026-11-03T15:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30",
+        "reason": "training"
+      }
+    ],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T14",
+    "name": "Deepak Joshi",
+    "home_zone_id": "Z2",
+    "home_location": {
+      "lat": 12.355,
+      "lng": 76.64
+    },
+    "eligible_zones": [
+      "Z2",
+      "Z4"
+    ],
+    "skills": [
+      "hvac",
+      "plumbing"
+    ],
+    "equipment": [
+      "hvac_gauge",
+      "pipe_wrench"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T08:00:00+05:30",
+        "end": "2026-11-02T17:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T08:00:00+05:30",
+        "end": "2026-11-03T17:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 60
+    }
+  },
+  {
+    "id": "T15",
+    "name": "Farah Sheikh",
+    "home_zone_id": "Z3",
+    "home_location": {
+      "lat": 12.25,
+      "lng": 76.645
+    },
+    "eligible_zones": [
+      "Z3",
+      "Z1"
+    ],
+    "skills": [
+      "networking",
+      "solar"
+    ],
+    "equipment": [
+      "ladder"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T16",
+    "name": "Gopal Krishna",
+    "home_zone_id": "Z5",
+    "home_location": {
+      "lat": 12.3,
+      "lng": 76.57
+    },
+    "eligible_zones": [
+      "Z5",
+      "Z1",
+      "Z3"
+    ],
+    "skills": [
+      "plumbing",
+      "hvac"
+    ],
+    "equipment": [
+      "hvac_gauge",
+      "pipe_wrench"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 60
+    }
+  },
+  {
+    "id": "T17",
+    "name": "Harini Pillai",
+    "home_zone_id": "Z4",
+    "home_location": {
+      "lat": 12.3,
+      "lng": 76.72
+    },
+    "eligible_zones": [
+      "Z4",
+      "Z1",
+      "Z2"
+    ],
+    "skills": [
+      "electrical",
+      "appliance_repair"
+    ],
+    "equipment": [
+      "appliance_toolkit",
+      "multimeter"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T08:00:00+05:30",
+        "end": "2026-11-02T16:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T08:00:00+05:30",
+        "end": "2026-11-03T16:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T18",
+    "name": "Manoj Bhat",
+    "home_zone_id": "Z1",
+    "home_location": {
+      "lat": 12.3052,
+      "lng": 76.6552
+    },
+    "eligible_zones": [
+      "Z1"
+    ],
+    "skills": [
+      "plumbing",
+      "electrical"
+    ],
+    "equipment": [
+      "multimeter",
+      "pipe_wrench"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T12:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T12:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": false,
+      "max_minutes_per_shift": 0
+    }
+  },
+  {
+    "id": "T19",
+    "name": "Nisha Verma",
+    "home_zone_id": "Z5",
+    "home_location": {
+      "lat": 12.3,
+      "lng": 76.57
+    },
+    "eligible_zones": [
+      "Z5",
+      "Z3",
+      "Z1"
+    ],
+    "skills": [
+      "appliance_repair",
+      "networking"
+    ],
+    "equipment": [
+      "appliance_toolkit"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T13:00:00+05:30",
+        "end": "2026-11-02T21:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T13:00:00+05:30",
+        "end": "2026-11-03T21:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 60
+    }
+  },
+  {
+    "id": "T20",
+    "name": "Omkar Jadhav",
+    "home_zone_id": "Z3",
+    "home_location": {
+      "lat": 12.25,
+      "lng": 76.645
+    },
+    "eligible_zones": [
+      "Z3",
+      "Z4"
+    ],
+    "skills": [
+      "solar",
+      "cctv",
+      "hvac"
+    ],
+    "equipment": [
+      "hvac_gauge",
+      "ladder"
+    ],
+    "shifts": [
+      {
+        "date": "2026-11-02",
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T18:00:00+05:30"
+      },
+      {
+        "date": "2026-11-03",
+        "start": "2026-11-03T09:00:00+05:30",
+        "end": "2026-11-03T18:00:00+05:30"
+      }
+    ],
+    "unavailable_periods": [
+      {
+        "start": "2026-11-02T09:00:00+05:30",
+        "end": "2026-11-02T11:00:00+05:30",
+        "reason": "vehicle_service"
+      }
+    ],
+    "overtime": {
+      "allowed": true,
+      "max_minutes_per_shift": 120
+    }
+  }
+]
