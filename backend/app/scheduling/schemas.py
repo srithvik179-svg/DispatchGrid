@@ -1047,6 +1047,76 @@ class CompetingSLAResolution(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class AssignmentChangeDetail(BaseModel):
+    """Detailed diff and stability impact for a single job assignment."""
+    job_id: str = Field(..., description="Target job identifier")
+    change_type: str = Field(..., description="Classification: UNCHANGED, TIME_SHIFTED, REASSIGNED, DROPPED_TO_UNASSIGNED, NEWLY_ASSIGNED")
+    old_technician_id: Optional[str] = Field(None, description="Baseline assigned technician ID")
+    new_technician_id: Optional[str] = Field(None, description="New assigned technician ID")
+    old_start: Optional[datetime] = Field(None, description="Baseline scheduled start")
+    new_start: Optional[datetime] = Field(None, description="New scheduled start")
+    old_end: Optional[datetime] = Field(None, description="Baseline scheduled end")
+    new_end: Optional[datetime] = Field(None, description="New scheduled end")
+    time_shift_minutes: float = Field(0.0, description="Absolute start time displacement in minutes")
+    is_protected: bool = Field(False, description="Whether this assignment represents completed or in-progress work")
+    is_valid: bool = Field(True, description="Whether the new assignment satisfies all hard constraints")
+    penalty: float = Field(0.0, description="Churn penalty incurred by this modification")
+    reason: str = Field(..., description="Explanation of why change was made or why assignment was preserved")
+
+
+class ScheduleStabilityMetrics(BaseModel):
+    """Aggregate fleet assignment stability metrics and protection compliance."""
+    total_baseline_assignments: int = Field(0, description="Total assignments present in baseline schedule")
+    total_candidate_assignments: int = Field(0, description="Total assignments present in candidate schedule")
+    unchanged_count: int = Field(0, description="Number of assignments preserved with zero technician or time change")
+    unchanged_percentage: float = Field(100.0, description="Percentage of baseline assignments remaining completely unchanged")
+    time_shifted_count: int = Field(0, description="Number of assignments retaining same technician but shifted in time")
+    average_time_shift_minutes: float = Field(0.0, description="Average time shift among shifted jobs in minutes")
+    reassigned_count: int = Field(0, description="Number of jobs switched to a different technician")
+    dropped_to_unassigned_count: int = Field(0, description="Number of baseline assigned jobs that became unassigned")
+    newly_assigned_count: int = Field(0, description="Number of previously unassigned jobs newly dispatched")
+    completed_protected_count: int = Field(0, description="Number of completed jobs in baseline")
+    completed_preserved_count: int = Field(0, description="Number of completed jobs strictly preserved")
+    in_progress_protected_count: int = Field(0, description="Number of in-progress jobs in baseline")
+    in_progress_preserved_count: int = Field(0, description="Number of in-progress jobs strictly preserved")
+    total_churn_penalty: float = Field(0.0, description="Aggregate penalty assessed for schedule churn")
+    stability_score: float = Field(100.0, description="Normalized schedule stability score (0.0 to 100.0%)")
+    is_protection_violated: bool = Field(False, description="True if any completed or in-progress job was illegally altered")
+    violations: List[str] = Field(default_factory=list, description="Descriptions of any illegal protection violations")
+
+
+class StabilityComparisonRequest(BaseModel):
+    """Request payload for evaluating stability between two schedules."""
+    w_reassign: float = Field(250.0, description="Penalty points per technician reassignment")
+    w_shift_per_hour: float = Field(30.0, description="Penalty points per hour of time displacement")
+    w_unassign: float = Field(500.0, description="Penalty points per previously assigned job dropped")
+
+
+class StabilityRecalculationRequest(BaseModel):
+    """Request payload for minimal-churn schedule recalculation upon disruption or change."""
+    disrupted_technician_id: Optional[str] = Field(None, description="Optional technician experiencing delay or unavailability")
+    disrupted_job_id: Optional[str] = Field(None, description="Optional job experiencing delay or cancellation")
+    delay_minutes: int = Field(0, description="Delay magnitude in minutes")
+    reassign_weight: float = Field(250.0, description="Penalty weight for reassignment")
+    shift_weight: float = Field(30.0, description="Penalty weight per hour of time displacement")
+    persist: bool = Field(False, description="Whether to persist the recalculated schedule to the database")
+
+
+class StabilityRecalculationResult(BaseModel):
+    """Comprehensive result of minimal-churn schedule recalculation."""
+    run_id: str = Field(..., description="Recalculation run ID")
+    as_of: datetime = Field(..., description="Simulation clock timestamp")
+    is_feasible: bool = Field(..., description="Whether schedule satisfies all hard constraints")
+    hard_violations_count: int = Field(0, description="Number of hard constraint violations (must be 0)")
+    hard_violations: List[HardConstraintViolation] = Field(default_factory=list, description="List of any violations")
+    affected_jobs: List[str] = Field(default_factory=list, description="Job IDs that required rescheduling or reassignment")
+    preserved_jobs: List[str] = Field(default_factory=list, description="Job IDs whose assignments were strictly preserved")
+    stability_metrics: ScheduleStabilityMetrics = Field(..., description="Stability metrics comparing before vs after")
+    assignment_changes: List[AssignmentChangeDetail] = Field(default_factory=list, description="Detailed change log")
+    assignments: List[AssignedJobPlan] = Field(default_factory=list, description="Final recalculated assignment plans")
+    persisted: bool = Field(False, description="Whether changes were persisted to database")
+
+
 
 
 

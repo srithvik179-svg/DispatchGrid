@@ -70,6 +70,16 @@ from app.scheduling.schemas import (
     SLAOptimizationRequest,
     CompetingSLARequest,
     CompetingSLAResolution,
+    AssignmentChangeDetail,
+    ScheduleStabilityMetrics,
+    StabilityComparisonRequest,
+    StabilityRecalculationRequest,
+    StabilityRecalculationResult,
+)
+from app.scheduling.stability import (
+    is_assignment_protected,
+    compare_schedules,
+    recalculate_stable_schedule,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -304,4 +314,12 @@ __all__ = [
     "calculate_fleet_sla_metrics",
     "resolve_competing_sla_deadlines",
     "optimize_schedule_sla",
+    "AssignmentChangeDetail",
+    "ScheduleStabilityMetrics",
+    "StabilityComparisonRequest",
+    "StabilityRecalculationRequest",
+    "StabilityRecalculationResult",
+    "is_assignment_protected",
+    "compare_schedules",
+    "recalculate_stable_schedule",
 ]

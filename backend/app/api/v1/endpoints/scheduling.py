@@ -57,6 +57,11 @@ from app.scheduling.schemas import (
     SLAOptimizationRequest,
     CompetingSLARequest,
     CompetingSLAResolution,
+    ScheduleStabilityMetrics,
+    AssignmentChangeDetail,
+    StabilityComparisonRequest,
+    StabilityRecalculationRequest,
+    StabilityRecalculationResult,
 )
 
 from app.scheduling.service import SchedulingService
@@ -1402,6 +1407,119 @@ def optimize_sla_endpoint(
         persist=persist,
         run_id=run_id,
     )
+
+
+# ==============================================================================
+# PHASE 27: SCHEDULE STABILITY & RECALCULATION ENDPOINTS
+# ==============================================================================
+
+@router.get(
+    "/schedule/stability",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Get fleet assignment stability metrics against locked baseline",
+)
+@router.get(
+    "/scheduling/stability",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_schedule_stability_endpoint(
+    w_reassign: float = 250.0,
+    w_shift_per_hour: float = 30.0,
+    w_unassign: float = 500.0,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Retrieves high-resolution schedule stability metrics and itemized change log
+    comparing current operational schedule against baseline locked assignments.
+    """
+    service = SchedulingService(db)
+    return service.get_stability_metrics(
+        w_reassign=w_reassign,
+        w_shift_per_hour=w_shift_per_hour,
+        w_unassign=w_unassign,
+    )
+
+
+@router.post(
+    "/schedule/stability/compare",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Compare stability between two candidate schedules",
+)
+@router.post(
+    "/scheduling/stability/compare",
+    response_model=Dict[str, Any],
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def compare_schedule_stability_endpoint(
+    req: Optional[StabilityComparisonRequest] = None,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Compares two schedules or evaluates stability of current schedule with configurable weights.
+    """
+    service = SchedulingService(db)
+    w_reassign = req.w_reassign if req else 250.0
+    w_shift = req.w_shift_per_hour if req else 30.0
+    w_unassign = req.w_unassign if req else 500.0
+
+    return service.compare_schedule_stability(
+        w_reassign=w_reassign,
+        w_shift_per_hour=w_shift,
+        w_unassign=w_unassign,
+    )
+
+
+@router.post(
+    "/schedule/stability/recalculate",
+    response_model=StabilityRecalculationResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Recalculate schedule with minimal churn upon disruption",
+)
+@router.post(
+    "/scheduling/stability/recalculate",
+    response_model=StabilityRecalculationResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def recalculate_stability_endpoint(
+    req: Optional[StabilityRecalculationRequest] = None,
+    db: Session = Depends(get_db),
+) -> StabilityRecalculationResult:
+    """
+    Recalculates schedules with minimum churn upon timeline disturbance:
+    - Locks all unaffected technicians and unaffected jobs in place.
+    - Protects all completed and in-progress assignments 100%.
+    - Restricts shifting or reassignments strictly to affected downstream work.
+    - Verifies zero hard constraint violations.
+    """
+    service = SchedulingService(db)
+    disrupted_tech = req.disrupted_technician_id if req else None
+    disrupted_job = req.disrupted_job_id if req else None
+    delay_mins = req.delay_minutes if req else 0
+    w_reassign = req.reassign_weight if req else 250.0
+    w_shift = req.shift_weight if req else 30.0
+    persist = req.persist if req else False
+
+    return service.recalculate_stable_schedule(
+        disrupted_technician_id=disrupted_tech,
+        disrupted_job_id=disrupted_job,
+        delay_minutes=delay_mins,
+        w_reassign=w_reassign,
+        w_shift_per_hour=w_shift,
+        persist=persist,
+    )
+
 
 
 

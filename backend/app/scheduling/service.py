@@ -48,6 +48,9 @@ from app.scheduling.schemas import (
     FleetSLAMetrics,
     SLAOptimizationResult,
     CompetingSLAResolution,
+    StabilityRecalculationResult,
+    ScheduleStabilityMetrics,
+    AssignmentChangeDetail,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -1518,6 +1521,188 @@ class SchedulingService:
                 else:
                     db_a.start_time = p.scheduled_start
                     db_a.end_time = p.scheduled_end
+
+                job_rec = self.db.query(Job).filter_by(id=p.job_id).first()
+                if job_rec and not (job_rec.status in ["completed", "in_progress"]):
+                    job_rec.scheduled_start = p.scheduled_start
+                    job_rec.scheduled_end = p.scheduled_end
+
+            self.db.commit()
+            result.persisted = True
+
+        return result
+
+    def get_stability_metrics(
+        self,
+        w_reassign: float = 250.0,
+        w_shift_per_hour: float = 30.0,
+        w_unassign: float = 500.0,
+    ) -> Dict[str, Any]:
+        """
+        Retrieves stability metrics of current operational schedule against baseline locked assignments.
+        """
+        from app.scheduling.stability import compare_schedules
+        from app.scheduling.algorithm import run_deterministic_initial_scheduler
+
+        # Baseline: initial existing locked assignments from dataset (7 items)
+        inputs = self.load_inputs()
+        baseline_plans = [
+            AssignedJobPlan(
+                job_id=a.job_id,
+                technician_id=a.technician_id,
+                scheduled_start=a.start_time,
+                scheduled_end=a.end_time,
+                travel_time_minutes=0.0,
+                is_existing=a.is_existing,
+                status=a.status,
+            )
+            for a in inputs.existing_assignments
+        ]
+
+        # Current schedule
+        db_assignments = self.db.query(Assignment).all()
+        if len(db_assignments) <= 7:
+            init_res = run_deterministic_initial_scheduler(
+                inputs=inputs,
+                unsupported_skills=self.get_unsupported_skills(),
+            )
+            candidate_plans = init_res.assignments
+        else:
+            candidate_plans = [
+                AssignedJobPlan(
+                    job_id=a.job_id,
+                    technician_id=a.technician_id,
+                    scheduled_start=a.start_time,
+                    scheduled_end=a.end_time,
+                    travel_time_minutes=0.0,
+                    is_existing=a.is_existing,
+                    status=a.status,
+                )
+                for a in db_assignments
+            ]
+
+        changes, metrics = compare_schedules(
+            baseline_assignments=baseline_plans,
+            candidate_assignments=candidate_plans,
+            w_reassign=w_reassign,
+            w_shift_per_hour=w_shift_per_hour,
+            w_unassign=w_unassign,
+        )
+
+        return {
+            "stability_metrics": metrics,
+            "assignment_changes": changes,
+        }
+
+    def compare_schedule_stability(
+        self,
+        baseline_assignments: Optional[List[Any]] = None,
+        candidate_assignments: Optional[List[Any]] = None,
+        w_reassign: float = 250.0,
+        w_shift_per_hour: float = 30.0,
+        w_unassign: float = 500.0,
+    ) -> Dict[str, Any]:
+        """
+        Compares arbitrary baseline and candidate schedules, or current vs baseline.
+        """
+        from app.scheduling.stability import compare_schedules
+
+        if baseline_assignments is None or candidate_assignments is None:
+            return self.get_stability_metrics(
+                w_reassign=w_reassign,
+                w_shift_per_hour=w_shift_per_hour,
+                w_unassign=w_unassign,
+            )
+
+        changes, metrics = compare_schedules(
+            baseline_assignments=baseline_assignments,
+            candidate_assignments=candidate_assignments,
+            w_reassign=w_reassign,
+            w_shift_per_hour=w_shift_per_hour,
+            w_unassign=w_unassign,
+        )
+
+        return {
+            "stability_metrics": metrics,
+            "assignment_changes": changes,
+        }
+
+    def recalculate_stable_schedule(
+        self,
+        disrupted_technician_id: Optional[str] = None,
+        disrupted_job_id: Optional[str] = None,
+        delay_minutes: int = 0,
+        w_reassign: float = 250.0,
+        w_shift_per_hour: float = 30.0,
+        persist: bool = False,
+        run_id: Optional[str] = None,
+    ) -> StabilityRecalculationResult:
+        """
+        Executes minimal-churn recalculation preserving valid unaffected assignments.
+        """
+        from app.scheduling.stability import recalculate_stable_schedule
+        from app.scheduling.algorithm import run_deterministic_initial_scheduler
+
+        inputs = self.load_inputs()
+        as_of = self.get_clock()
+
+        db_assignments = self.db.query(Assignment).all()
+        if len(db_assignments) <= 7:
+            init_res = run_deterministic_initial_scheduler(
+                inputs=inputs,
+                unsupported_skills=self.get_unsupported_skills(),
+            )
+            plans = init_res.assignments
+        else:
+            plans = [
+                AssignedJobPlan(
+                    job_id=a.job_id,
+                    technician_id=a.technician_id,
+                    scheduled_start=a.start_time,
+                    scheduled_end=a.end_time,
+                    travel_time_minutes=0.0,
+                    is_existing=a.is_existing,
+                    status=a.status,
+                )
+                for a in db_assignments
+            ]
+
+        jobs_all = [JobResponse.model_validate(j) for j in self.db.query(Job).all()]
+        technicians_all = [TechnicianResponse.model_validate(t) for t in self.db.query(Technician).all()]
+
+        result = recalculate_stable_schedule(
+            baseline_assignments=plans,
+            technicians=technicians_all,
+            jobs=jobs_all,
+            as_of=as_of,
+            disrupted_technician_id=disrupted_technician_id,
+            disrupted_job_id=disrupted_job_id,
+            delay_minutes=delay_minutes,
+            w_reassign=w_reassign,
+            w_shift_per_hour=w_shift_per_hour,
+            run_id=run_id or generate_run_id("RUN-STABLE"),
+        )
+
+        if persist and result.is_feasible:
+            for p in result.assignments:
+                if p.is_existing:
+                    continue
+                db_a = self.db.query(Assignment).filter_by(job_id=p.job_id).first()
+                if not db_a:
+                    db_a = Assignment(
+                        id=f"ASN-{uuid.uuid4().hex[:8].upper()}",
+                        job_id=p.job_id,
+                        technician_id=p.technician_id,
+                        start_time=p.scheduled_start,
+                        end_time=p.scheduled_end,
+                        status="scheduled",
+                        is_existing=False,
+                    )
+                    self.db.add(db_a)
+                else:
+                    db_a.start_time = p.scheduled_start
+                    db_a.end_time = p.scheduled_end
+                    db_a.technician_id = p.technician_id
 
                 job_rec = self.db.query(Job).filter_by(id=p.job_id).first()
                 if job_rec and not (job_rec.status in ["completed", "in_progress"]):
