@@ -98,6 +98,10 @@ DispatchGrid/
    source .venv/bin/activate
    alembic upgrade head
    ```
+4. Load authoritative dataset into PostgreSQL:
+   ```bash
+   python -m app.cli.seed
+   ```
 
 ### Backend Setup
 1. Navigate to the `backend` directory:
@@ -186,3 +190,4 @@ npm run build
 - **Phase 01 – Project Initialisation**: Completed. Clean frontend and backend architecture established, live health endpoint verified, unit and integration tests passing, zero secrets committed.
 - **Phase 02 – Basic Application Interface**: Completed. Collapsible enterprise application shell, header, simulation clock badge, active routing, and 9 module pages implemented.
 - **Phase 03 – Database Integration**: Completed. PostgreSQL connectivity, connection pooling, reusable SQLAlchemy session management, Alembic migrations (`system_metadata`), database health monitoring, and credential masking verified.
+- **Phase 04 – Dataset Integration**: Completed. Idempotent loading of authoritative hackathon dataset into PostgreSQL: 6 zones, 20 technicians, 108 jobs (100 pending, 4 completed, 3 in progress, 1 cancelled), 7 existing assignments, 12 disruption/reliability scenarios, and simulation clock (`2026-11-02T10:00:00+05:30`). Zero duplicate records on repeated execution.
