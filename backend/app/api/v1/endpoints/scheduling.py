@@ -17,10 +17,14 @@ from app.scheduling.schemas import (
     SimulationClockResponse,
     JobSkillCandidates,
     SkillFilterRequest,
+    JobCandidateEvaluation,
+    CombinedQualificationRequest,
 )
 from app.scheduling.service import SchedulingService
 from app.scheduling.loader import load_eligible_technicians
 from app.scheduling.skills import filter_technicians_by_skills
+from app.scheduling.equipment import filter_candidates_for_job
+
 
 router = APIRouter()
 
@@ -156,6 +160,86 @@ def filter_by_skills(
         technicians=all_techs,
         unsupported_skills=unsupported,
     )
+
+
+@router.get(
+    "/scheduling/candidates",
+    response_model=Union[JobCandidateEvaluation, Dict[str, JobCandidateEvaluation]],
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Get candidate technicians filtered by both mandatory skills and equipment",
+)
+def get_job_candidates(
+    job_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Returns candidate technicians strictly filtered by both required skills and equipment.
+    Distinguishes skill deficiencies from equipment deficiencies.
+    """
+    service = SchedulingService(db)
+    if job_id:
+        try:
+            return service.get_candidates_for_job(job_id)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    return service.get_all_job_candidates()
+
+
+@router.post(
+    "/scheduling/candidates/filter",
+    response_model=JobCandidateEvaluation,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Evaluate technician skill and equipment compatibility against job or custom criteria",
+)
+def filter_by_qualifications(
+    req: CombinedQualificationRequest,
+    db: Session = Depends(get_db),
+) -> JobCandidateEvaluation:
+    """
+    Evaluates candidate technicians against specified skills and equipment criteria.
+    """
+    service = SchedulingService(db)
+    req_skills = req.required_skills or []
+    req_equipment = req.required_equipment or []
+    target_job_id = req.job_id or "CUSTOM-QUAL-QUERY"
+    target_job_title = "Custom qualification evaluation"
+
+    if req.job_id:
+        job = db.query(Job).filter_by(id=req.job_id).first()
+        if not job:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Job with ID '{req.job_id}' not found",
+            )
+        target_job_title = job.title
+        if not req.required_skills:
+            req_skills = job.required_skills or []
+        if not req.required_equipment:
+            req_equipment = job.required_equipment or []
+
+    all_techs = load_eligible_technicians(db)
+    if req.technician_ids:
+        tech_id_set = set(req.technician_ids)
+        all_techs = [t for t in all_techs if t.id in tech_id_set]
+
+    unsupported_skills = service.get_unsupported_skills()
+    fleet_equipment = service.get_fleet_equipment()
+
+    fake_job = {
+        "id": target_job_id,
+        "title": target_job_title,
+        "required_skills": req_skills,
+        "required_equipment": req_equipment,
+    }
+    return filter_candidates_for_job(
+        job=fake_job,
+        technicians=all_techs,
+        unsupported_skills=unsupported_skills,
+        fleet_equipment_inventory=fleet_equipment,
+    )
+
 
 
 

@@ -9,6 +9,10 @@ from app.scheduling.schemas import (
     CandidateTechnicianSummary,
     JobSkillCandidates,
     SkillFilterRequest,
+    EquipmentMatchResult,
+    QualificationMatchResult,
+    JobCandidateEvaluation,
+    CombinedQualificationRequest,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -29,6 +33,14 @@ from app.scheduling.skills import (
     filter_technicians_by_skills,
     filter_all_jobs_by_skills,
 )
+from app.scheduling.equipment import (
+    STANDARD_FLEET_EQUIPMENT,
+    normalize_equipment,
+    check_technician_equipment,
+    check_technician_qualification,
+    filter_candidates_for_job,
+    filter_all_jobs_candidates,
+)
 
 __all__ = [
     "SchedulingRunConfig",
@@ -41,6 +53,10 @@ __all__ = [
     "CandidateTechnicianSummary",
     "JobSkillCandidates",
     "SkillFilterRequest",
+    "EquipmentMatchResult",
+    "QualificationMatchResult",
+    "JobCandidateEvaluation",
+    "CombinedQualificationRequest",
     "get_simulation_clock",
     "get_planning_horizon",
     "load_scheduling_inputs",
@@ -54,4 +70,10 @@ __all__ = [
     "check_technician_skills",
     "filter_technicians_by_skills",
     "filter_all_jobs_by_skills",
+    "STANDARD_FLEET_EQUIPMENT",
+    "normalize_equipment",
+    "check_technician_equipment",
+    "check_technician_qualification",
+    "filter_candidates_for_job",
+    "filter_all_jobs_candidates",
 ]

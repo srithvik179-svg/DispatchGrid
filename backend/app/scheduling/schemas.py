@@ -101,10 +101,73 @@ class CandidateTechnicianSummary(BaseModel):
     id: str
     name: str
     skills: List[str] = Field(default_factory=list)
+    equipment: List[str] = Field(default_factory=list)
     eligible_zones: List[str] = Field(default_factory=list)
     home_zone_id: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class EquipmentMatchResult(BaseModel):
+    """Detailed equipment validation result for an individual technician evaluated against a job."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    is_eligible: bool
+    matched_equipment: List[str] = Field(default_factory=list)
+    missing_equipment: List[str] = Field(default_factory=list)
+    has_unsupported_equipment: bool = False
+    unsupported_equipment: List[str] = Field(default_factory=list)
+    rejection_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class QualificationMatchResult(BaseModel):
+    """Combined validation result verifying both certified skills and required equipment."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    is_eligible: bool
+    skill_eligible: bool
+    equipment_eligible: bool
+    skill_match: SkillMatchResult
+    equipment_match: EquipmentMatchResult
+    missing_skills: List[str] = Field(default_factory=list)
+    missing_equipment: List[str] = Field(default_factory=list)
+    failure_categories: List[str] = Field(default_factory=list)
+    combined_rejection_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class JobCandidateEvaluation(BaseModel):
+    """Consolidated candidate evaluation for a job combining skills and equipment constraints."""
+    job_id: str
+    job_title: Optional[str] = None
+    required_skills: List[str] = Field(default_factory=list)
+    required_equipment: List[str] = Field(default_factory=list)
+    has_unsupported_requirements: bool = False
+    unsupported_requirements: List[str] = Field(default_factory=list)
+    candidate_count: int = 0
+    is_assignable: bool = True
+    eligible_candidates: List[CandidateTechnicianSummary] = Field(default_factory=list)
+    rejected_candidates: List[QualificationMatchResult] = Field(default_factory=list)
+    skill_only_matching_candidates: List[str] = Field(
+        default_factory=list,
+        description="Technicians who possess all required skills but fail mandatory equipment",
+    )
+    rejection_summary: Dict[str, str] = Field(default_factory=dict, description="technician_id -> reason")
+    reason_if_unassignable: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CombinedQualificationRequest(BaseModel):
+    """Request payload for evaluating technician compatibility against skill and equipment requirements."""
+    job_id: Optional[str] = None
+    required_skills: Optional[List[str]] = None
+    required_equipment: Optional[List[str]] = None
+    technician_ids: Optional[List[str]] = None
+
 
 
 class JobSkillCandidates(BaseModel):

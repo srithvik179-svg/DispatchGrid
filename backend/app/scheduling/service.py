@@ -13,6 +13,7 @@ from app.scheduling.schemas import (
     SchedulingResult,
     AssignedJobPlan,
     JobSkillCandidates,
+    JobCandidateEvaluation,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -25,6 +26,11 @@ from app.scheduling.skills import (
     DEFAULT_UNSUPPORTED_SKILLS,
     filter_technicians_by_skills,
     filter_all_jobs_by_skills,
+)
+from app.scheduling.equipment import (
+    STANDARD_FLEET_EQUIPMENT,
+    filter_candidates_for_job,
+    filter_all_jobs_candidates,
 )
 
 
@@ -46,7 +52,7 @@ class SchedulingService:
       - Loading scheduling inputs (pending jobs, eligible technicians, existing assignments).
       - Respecting simulation reference clock and planning horizons.
       - Generating run tracking IDs.
-      - Filtering candidates by certified skill proficiencies and detecting unsupported requirements.
+      - Filtering candidates by certified skill proficiencies and mandatory equipment tooling.
       - Constructing standardized scheduling plan results.
       - Guaranteeing that pre-existing locked/in-progress assignments are strictly preserved.
     """
@@ -81,6 +87,18 @@ class SchedulingService:
             except Exception:
                 pass
         return list(DEFAULT_UNSUPPORTED_SKILLS)
+
+    def get_fleet_equipment(self) -> List[str]:
+        """Retrieve supported equipment inventory defined in system metadata or fallback defaults."""
+        record = self.db.query(SystemMetadata).filter_by(key="equipment").first()
+        if record and record.value:
+            try:
+                parsed = json.loads(record.value)
+                if isinstance(parsed, list):
+                    return parsed
+            except Exception:
+                pass
+        return list(STANDARD_FLEET_EQUIPMENT)
 
     def load_inputs(
         self,
@@ -126,6 +144,42 @@ class SchedulingService:
             unsupported_skills=unsupported,
         )
 
+    def get_candidates_for_job(self, job_id: str) -> JobCandidateEvaluation:
+        """
+        Evaluates candidate technicians enforcing BOTH mandatory skills and mandatory equipment.
+        Identifies missing equipment separately from missing skills.
+        """
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+
+        technicians = load_eligible_technicians(self.db)
+        unsupported_skills = self.get_unsupported_skills()
+        fleet_equipment = self.get_fleet_equipment()
+
+        return filter_candidates_for_job(
+            job=job,
+            technicians=technicians,
+            unsupported_skills=unsupported_skills,
+            fleet_equipment_inventory=fleet_equipment,
+        )
+
+    def get_all_job_candidates(self) -> Dict[str, JobCandidateEvaluation]:
+        """
+        Evaluates candidate compatibility combining skills and equipment for all pending jobs.
+        """
+        jobs = load_pending_jobs(self.db)
+        technicians = load_eligible_technicians(self.db)
+        unsupported_skills = self.get_unsupported_skills()
+        fleet_equipment = self.get_fleet_equipment()
+
+        return filter_all_jobs_candidates(
+            jobs=jobs,
+            technicians=technicians,
+            unsupported_skills=unsupported_skills,
+            fleet_equipment_inventory=fleet_equipment,
+        )
+
     def initialize_run(
         self,
         config: Optional[SchedulingRunConfig] = None,
@@ -164,7 +218,18 @@ class SchedulingService:
 
         total_evaluated_jobs = len(inputs.existing_assignments) + len(inputs.pending_jobs)
 
-        # 3. Analyze skill-based candidate availability
+        # 3. Analyze combined skill & equipment candidate availability
+        candidate_evaluations = self.get_all_job_candidates()
+        unassignable_jobs = [
+            jid for jid, cand in candidate_evaluations.items() if not cand.is_assignable
+        ]
+        skill_only_jobs = {
+            jid: cand.skill_only_matching_candidates
+            for jid, cand in candidate_evaluations.items()
+            if cand.skill_only_matching_candidates
+        }
+
+        # Also compute skill-specific unassignable count for backwards compatibility
         skill_analysis = self.get_all_skill_candidates()
         unassignable_by_skills = [
             jid for jid, cand in skill_analysis.items() if not cand.is_assignable
@@ -190,11 +255,16 @@ class SchedulingService:
                 "unassigned_backlog_count": len(unassigned_job_ids),
                 "unassignable_skills_jobs_count": len(unassignable_by_skills),
                 "unassignable_skills_jobs": unassignable_by_skills,
+                "unassignable_jobs_count": len(unassignable_jobs),
+                "unassignable_jobs": unassignable_jobs,
+                "jobs_with_equipment_lacking_candidates": list(skill_only_jobs.keys()),
                 "unsupported_skills": self.get_unsupported_skills(),
+                "fleet_equipment_inventory": self.get_fleet_equipment(),
                 "mode": config.mode if config else "baseline",
                 "ready_for_optimization": True,
             },
             created_at=datetime.now(timezone.utc),
         )
+
 
         return result
