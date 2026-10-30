@@ -60,6 +60,7 @@ from app.scheduling.time_windows import (
     calculate_feasible_service_window,
 )
 from app.scheduling.conflicts import detect_scheduling_conflicts
+from app.scheduling.algorithm import run_deterministic_initial_scheduler
 
 
 
@@ -551,3 +552,18 @@ class SchedulingService:
 
 
         return result
+
+    def generate_initial_schedule(
+        self,
+        config: Optional[SchedulingRunConfig] = None,
+    ) -> SchedulingResult:
+        """
+        Executes the initial automatic deterministic scheduling algorithm.
+        Generates optimal, conflict-free assignments across the technician roster
+        while strictly preserving all pre-existing assignments.
+        """
+        run_id = generate_run_id()
+        inputs = self.load_inputs(run_id=run_id, config=config)
+        unsupported = self.get_unsupported_skills()
+        return run_deterministic_initial_scheduler(inputs, unsupported_skills=unsupported)
+

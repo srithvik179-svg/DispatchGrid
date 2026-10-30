@@ -113,6 +113,27 @@ def initialize_scheduling_run(
     return service.initialize_run(config=config)
 
 
+@router.post(
+    "/scheduling/runs/initial",
+    response_model=SchedulingResult,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Scheduling Engine"],
+    summary="Execute initial automatic deterministic scheduling algorithm",
+)
+def execute_initial_scheduling_run(
+    config: Optional[SchedulingRunConfig] = None,
+    db: Session = Depends(get_db),
+) -> SchedulingResult:
+    """
+    Executes the initial automatic deterministic scheduling algorithm.
+    Generates optimal, conflict-free assignments across the technician fleet,
+    strictly preserving existing assignments and balancing fleet workload.
+    """
+    service = SchedulingService(db)
+    return service.generate_initial_schedule(config=config)
+
+
+
 @router.get(
     "/scheduling/candidates/skills",
     response_model=Union[JobSkillCandidates, Dict[str, JobSkillCandidates]],

@@ -72,16 +72,25 @@ def check_shift_coverage(
     ot_allowed = False
     ot_max_mins = 0
     if overtime_config:
-        ot_allowed = bool(overtime_config.get("allowed", False))
-        ot_max_mins = int(overtime_config.get("max_minutes_per_shift", 0) or 0)
+        if isinstance(overtime_config, dict):
+            ot_allowed = bool(overtime_config.get("allowed", False))
+            ot_max_mins = int(overtime_config.get("max_minutes_per_shift", 0) or 0)
+        else:
+            ot_allowed = bool(getattr(overtime_config, "allowed", False))
+            ot_max_mins = int(getattr(overtime_config, "max_minutes_per_shift", 0) or 0)
 
     best_rejection: Optional[str] = None
     shift_matched = False
 
     for shift in shifts:
-        s_start = parse_datetime_safe(shift.get("start"))
-        s_end = parse_datetime_safe(shift.get("end"))
-        s_date = str(shift.get("date", ""))
+        if isinstance(shift, dict):
+            s_start = parse_datetime_safe(shift.get("start"))
+            s_end = parse_datetime_safe(shift.get("end"))
+            s_date = str(shift.get("date", ""))
+        else:
+            s_start = parse_datetime_safe(getattr(shift, "start", None))
+            s_end = parse_datetime_safe(getattr(shift, "end", None))
+            s_date = str(getattr(shift, "date", ""))
 
         if not s_start or not s_end:
             continue
@@ -188,9 +197,14 @@ def check_unavailability_collision(
     conflicts: List[Dict[str, Any]] = []
 
     for period in unavailable_periods:
-        u_start = parse_datetime_safe(period.get("start"))
-        u_end = parse_datetime_safe(period.get("end"))
-        reason = period.get("reason", "unavailable")
+        if isinstance(period, dict):
+            u_start = parse_datetime_safe(period.get("start"))
+            u_end = parse_datetime_safe(period.get("end"))
+            reason = period.get("reason", "unavailable")
+        else:
+            u_start = parse_datetime_safe(getattr(period, "start", None))
+            u_end = parse_datetime_safe(getattr(period, "end", None))
+            reason = getattr(period, "reason", "unavailable")
 
         if not u_start or not u_end:
             continue

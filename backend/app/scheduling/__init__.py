@@ -83,6 +83,13 @@ from app.scheduling.conflicts import (
     extract_assignment_info,
     persist_assignment_with_conflict_check,
 )
+from app.scheduling.algorithm import (
+    calculate_job_scheduling_difficulty,
+    prioritize_pending_jobs,
+    find_feasible_slots_for_technician,
+    compute_slot_ranking_score,
+    run_deterministic_initial_scheduler,
+)
 
 __all__ = [
     "SchedulingRunConfig",
@@ -152,4 +159,9 @@ __all__ = [
     "detect_scheduling_conflicts",
     "extract_assignment_info",
     "persist_assignment_with_conflict_check",
+    "calculate_job_scheduling_difficulty",
+    "prioritize_pending_jobs",
+    "find_feasible_slots_for_technician",
+    "compute_slot_ranking_score",
+    "run_deterministic_initial_scheduler",
 ]
