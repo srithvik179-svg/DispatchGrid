@@ -33,6 +33,10 @@ from app.scheduling.schemas import (
     SchedulingConflict,
     ConflictCheckResult,
     ConflictCheckRequest,
+    TechnicianRejectionDetail,
+    JobFeasibilityReport,
+    FleetFeasibilitySummary,
+    FeasibilityEvaluationRequest,
 )
 
 from app.scheduling.service import SchedulingService
@@ -799,6 +803,78 @@ def create_scheduling_assignment(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+
+
+@router.get(
+    "/scheduling/feasibility/job/{job_id}",
+    response_model=JobFeasibilityReport,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Feasibility"],
+    summary="Get detailed feasibility classification and diagnostic explanation for a job",
+)
+def get_job_feasibility_endpoint(
+    job_id: str,
+    as_of: Optional[datetime] = None,
+    db: Session = Depends(get_db),
+) -> JobFeasibilityReport:
+    """
+    Classifies a job into feasible, currently_infeasible, or permanently_impossible,
+    providing root-cause failure categories, technician rejection details, and actionable recommendations.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.get_job_feasibility(job_id=job_id, as_of=as_of)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/scheduling/feasibility/fleet",
+    response_model=FleetFeasibilitySummary,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Feasibility"],
+    summary="Evaluate fleet-wide feasibility classifications across all pending jobs",
+)
+def get_fleet_feasibility_endpoint(
+    as_of: Optional[datetime] = None,
+    db: Session = Depends(get_db),
+) -> FleetFeasibilitySummary:
+    """
+    Aggregates diagnostic feasibility metrics across the entire pending backlog.
+    """
+    service = SchedulingService(db)
+    return service.get_fleet_feasibility(as_of=as_of)
+
+
+@router.post(
+    "/scheduling/feasibility/evaluate",
+    response_model=Union[JobFeasibilityReport, FleetFeasibilitySummary],
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Feasibility"],
+    summary="Evaluate feasibility for a specific job or fleet backlog",
+)
+def evaluate_feasibility_endpoint(
+    req: FeasibilityEvaluationRequest,
+    db: Session = Depends(get_db),
+):
+    """
+    Evaluates job feasibility report if job_id is provided, otherwise evaluates entire fleet.
+    """
+    service = SchedulingService(db)
+    if req.job_id:
+        try:
+            return service.get_job_feasibility(job_id=req.job_id, as_of=req.as_of)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=str(e),
+            )
+    return service.get_fleet_feasibility(as_of=req.as_of)
+
+
 
 
 

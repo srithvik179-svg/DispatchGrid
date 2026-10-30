@@ -449,6 +449,59 @@ class ConflictCheckRequest(BaseModel):
     enforce_simulation_clock: bool = True
 
 
+class TechnicianRejectionDetail(BaseModel):
+    """Detailed explanation of why an individual technician cannot be assigned to a job."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    is_structurally_capable: bool = False
+    rejection_category: str = Field(..., description="'skills', 'equipment', 'zone', 'shift', 'time_window', 'travel', 'conflict'")
+    rejection_code: str
+    missing_skills: List[str] = Field(default_factory=list)
+    missing_equipment: List[str] = Field(default_factory=list)
+    zone_certified: bool = True
+    explanation: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class JobFeasibilityReport(BaseModel):
+    """Diagnostic categorization distinguishing feasibility, temporary constraints, and permanent impossibility."""
+    job_id: str
+    classification: str = Field(..., description="'feasible', 'currently_infeasible', 'permanently_impossible'")
+    primary_category: str = Field(..., description="'none', 'unsupported_skill', 'missing_skill', 'missing_equipment', 'uncovered_zone', 'shift_hours', 'travel_deficit', 'schedule_conflict', 'time_window'")
+    is_structurally_feasible: bool = Field(..., description="Whether the fleet possesses skills, equipment, and zone to execute this job")
+    qualified_technician_count: int = 0
+    qualified_technician_ids: List[str] = Field(default_factory=list)
+    is_sla_delayed: bool = False
+    sla_lateness_minutes: int = 0
+    rejection_summary: str
+    actionable_recommendation: str
+    technician_rejections: List[TechnicianRejectionDetail] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FleetFeasibilitySummary(BaseModel):
+    """Fleet-wide diagnostic summary classifying all evaluated jobs."""
+    run_id: Optional[str] = None
+    as_of: datetime
+    total_jobs: int
+    feasible_count: int
+    currently_infeasible_count: int
+    permanently_impossible_count: int
+    job_reports: Dict[str, JobFeasibilityReport] = Field(default_factory=dict)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FeasibilityEvaluationRequest(BaseModel):
+    """Request payload for assessing job scheduling feasibility."""
+    job_id: Optional[str] = None
+    as_of: Optional[datetime] = None
+    include_technician_details: bool = True
+
+
+
 
 
 

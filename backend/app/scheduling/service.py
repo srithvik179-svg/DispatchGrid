@@ -24,6 +24,8 @@ from app.scheduling.schemas import (
     FeasibleWindowResult,
     SchedulingConflict,
     ConflictCheckResult,
+    JobFeasibilityReport,
+    FleetFeasibilitySummary,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -61,6 +63,7 @@ from app.scheduling.time_windows import (
 )
 from app.scheduling.conflicts import detect_scheduling_conflicts
 from app.scheduling.algorithm import run_deterministic_initial_scheduler
+from app.scheduling.feasibility import classify_job_feasibility, classify_fleet_feasibility
 
 
 
@@ -566,4 +569,73 @@ class SchedulingService:
         inputs = self.load_inputs(run_id=run_id, config=config)
         unsupported = self.get_unsupported_skills()
         return run_deterministic_initial_scheduler(inputs, unsupported_skills=unsupported)
+
+    def get_job_feasibility(
+        self,
+        job_id: str,
+        as_of: Optional[datetime] = None,
+    ) -> JobFeasibilityReport:
+        """
+        Classifies scheduling feasibility for a job into:
+        - 'feasible'
+        - 'currently_infeasible'
+        - 'permanently_impossible'
+        along with primary category and actionable explanations.
+        """
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+
+        from app.schemas.job import JobResponse
+        from app.scheduling.conflicts import extract_assignment_info
+
+        inputs = self.load_inputs(config=SchedulingRunConfig(as_of=as_of) if as_of else None)
+        job_resp = JobResponse.model_validate(job)
+        unsupported = self.get_unsupported_skills()
+        fleet_equip = self.get_fleet_equipment()
+
+        itineraries = {t.id: [] for t in inputs.technicians}
+        for a in inputs.existing_assignments:
+            info = extract_assignment_info(a)
+            if a.technician_id in itineraries:
+                itineraries[a.technician_id].append(info)
+
+        return classify_job_feasibility(
+            job=job_resp,
+            technicians=inputs.technicians,
+            technician_itineraries=itineraries,
+            as_of=inputs.as_of,
+            unsupported_skills=unsupported,
+            fleet_equipment=fleet_equip,
+        )
+
+    def get_fleet_feasibility(
+        self,
+        as_of: Optional[datetime] = None,
+    ) -> FleetFeasibilitySummary:
+        """
+        Evaluates and aggregates feasibility classifications for all pending jobs in the fleet.
+        """
+        from app.scheduling.conflicts import extract_assignment_info
+
+        inputs = self.load_inputs(config=SchedulingRunConfig(as_of=as_of) if as_of else None)
+        unsupported = self.get_unsupported_skills()
+        fleet_equip = self.get_fleet_equipment()
+
+        itineraries = {t.id: [] for t in inputs.technicians}
+        for a in inputs.existing_assignments:
+            info = extract_assignment_info(a)
+            if a.technician_id in itineraries:
+                itineraries[a.technician_id].append(info)
+
+        return classify_fleet_feasibility(
+            jobs=inputs.pending_jobs,
+            technicians=inputs.technicians,
+            technician_itineraries=itineraries,
+            as_of=inputs.as_of,
+            unsupported_skills=unsupported,
+            fleet_equipment=fleet_equip,
+            run_id=inputs.run_id,
+        )
+
 

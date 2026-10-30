@@ -28,6 +28,10 @@ from app.scheduling.schemas import (
     SchedulingConflict,
     ConflictCheckResult,
     ConflictCheckRequest,
+    TechnicianRejectionDetail,
+    JobFeasibilityReport,
+    FleetFeasibilitySummary,
+    FeasibilityEvaluationRequest,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -89,6 +93,10 @@ from app.scheduling.algorithm import (
     find_feasible_slots_for_technician,
     compute_slot_ranking_score,
     run_deterministic_initial_scheduler,
+)
+from app.scheduling.feasibility import (
+    classify_job_feasibility,
+    classify_fleet_feasibility,
 )
 
 __all__ = [
@@ -164,4 +172,10 @@ __all__ = [
     "find_feasible_slots_for_technician",
     "compute_slot_ranking_score",
     "run_deterministic_initial_scheduler",
+    "TechnicianRejectionDetail",
+    "JobFeasibilityReport",
+    "FleetFeasibilitySummary",
+    "FeasibilityEvaluationRequest",
+    "classify_job_feasibility",
+    "classify_fleet_feasibility",
 ]
