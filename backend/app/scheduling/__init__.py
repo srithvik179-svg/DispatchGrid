@@ -22,6 +22,9 @@ from app.scheduling.schemas import (
     UnavailabilityCheckResult,
     TechnicianAvailabilityEvaluation,
     AvailabilityCheckRequest,
+    TimeWindowValidationResult,
+    FeasibleWindowResult,
+    TimeWindowCheckRequest,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -67,6 +70,11 @@ from app.scheduling.availability import (
     check_unavailability_collision,
     evaluate_technician_availability,
 )
+from app.scheduling.time_windows import (
+    validate_job_time_window,
+    validate_job_instance_time_window,
+    calculate_feasible_service_window,
+)
 
 __all__ = [
     "SchedulingRunConfig",
@@ -92,6 +100,9 @@ __all__ = [
     "UnavailabilityCheckResult",
     "TechnicianAvailabilityEvaluation",
     "AvailabilityCheckRequest",
+    "TimeWindowValidationResult",
+    "FeasibleWindowResult",
+    "TimeWindowCheckRequest",
     "get_simulation_clock",
     "get_planning_horizon",
     "load_scheduling_inputs",
@@ -124,4 +135,7 @@ __all__ = [
     "check_shift_coverage",
     "check_unavailability_collision",
     "evaluate_technician_availability",
+    "validate_job_time_window",
+    "validate_job_instance_time_window",
+    "calculate_feasible_service_window",
 ]

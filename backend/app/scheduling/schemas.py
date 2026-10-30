@@ -324,4 +324,76 @@ class AvailabilityCheckRequest(BaseModel):
     as_of: Optional[datetime] = None
 
 
+class TimeWindowValidationResult(BaseModel):
+    """Validation result evaluating hard time windows, travel reachability, and soft SLA deadlines."""
+    job_id: Optional[str] = None
+    is_eligible: bool = Field(..., description="Whether all hard time-window and travel constraints are satisfied")
+    proposed_start: datetime
+    proposed_end: datetime
+    duration_minutes: int
+    time_window_start: datetime
+    time_window_end: datetime
+    sla_deadline: Optional[datetime] = None
+
+    # Hard constraint flags
+    is_window_expired: bool = False
+    starts_too_early: bool = False
+    ends_too_late: bool = False
+    duration_mismatch: bool = False
+    travel_infeasible: bool = False
+    starts_before_simulation_clock: bool = False
+
+    # Travel transit details
+    travel_minutes: float = 0.0
+    origin_departure_time: Optional[datetime] = None
+    earliest_arrival_time: Optional[datetime] = None
+
+    # Soft SLA metrics (crucial: SLA lateness does NOT automatically cause hard rejection)
+    is_sla_violated: bool = False
+    sla_lateness_minutes: int = 0
+    sla_status: str = Field(default="on_time", description="'on_time', 'late', 'not_applicable'")
+
+    # Detailed rejection reporting
+    rejection_reasons: List[str] = Field(default_factory=list)
+    rejection_codes: List[str] = Field(default_factory=list)
+    summary: str = ""
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FeasibleWindowResult(BaseModel):
+    """Feasible scheduling start and completion interval for a job given operational constraints."""
+    job_id: Optional[str] = None
+    earliest_feasible_start: datetime
+    latest_feasible_start: datetime
+    earliest_feasible_completion: datetime
+    latest_feasible_completion: datetime
+    duration_minutes: int
+    is_feasible: bool
+    travel_minutes: float = 0.0
+    time_window_start: datetime
+    time_window_end: datetime
+    sla_deadline: Optional[datetime] = None
+    on_time_sla_latest_start: Optional[datetime] = None
+    infeasibility_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TimeWindowCheckRequest(BaseModel):
+    """Request payload for evaluating job time-window and SLA compatibility."""
+    job_id: Optional[str] = None
+    proposed_start: datetime
+    proposed_end: Optional[datetime] = None
+    duration_minutes: Optional[int] = Field(None, gt=0)
+    time_window_start: Optional[datetime] = None
+    time_window_end: Optional[datetime] = None
+    sla_deadline: Optional[datetime] = None
+    travel_minutes: Optional[float] = Field(default=0.0, ge=0.0)
+    origin_departure_time: Optional[datetime] = None
+    as_of: Optional[datetime] = None
+    enforce_simulation_clock: bool = True
+
+
+
 

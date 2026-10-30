@@ -20,6 +20,8 @@ from app.scheduling.schemas import (
     ShiftAvailabilityResult,
     UnavailabilityCheckResult,
     TechnicianAvailabilityEvaluation,
+    TimeWindowValidationResult,
+    FeasibleWindowResult,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -48,6 +50,11 @@ from app.scheduling.availability import (
     evaluate_technician_availability,
     check_shift_coverage,
     check_unavailability_collision,
+)
+from app.scheduling.time_windows import (
+    validate_job_time_window as check_time_window,
+    validate_job_instance_time_window,
+    calculate_feasible_service_window,
 )
 
 
@@ -82,6 +89,10 @@ class SchedulingService:
     def get_clock(self, override: Optional[datetime] = None) -> datetime:
         """Retrieve the active simulation clock."""
         return get_simulation_clock(self.db, override=override)
+
+    def get_simulation_clock(self, override: Optional[datetime] = None) -> datetime:
+        """Alias for get_clock retrieving the active simulation clock."""
+        return self.get_clock(override=override)
 
     def get_horizon(
         self,
@@ -322,6 +333,67 @@ class SchedulingService:
             job_id=job_id,
             enforce_simulation_clock=enforce_simulation_clock,
         )
+
+    def validate_job_time_window(
+        self,
+        job_id: str,
+        proposed_start: datetime,
+        proposed_end: Optional[datetime] = None,
+        origin_departure_time: Optional[datetime] = None,
+        travel_minutes: float = 0.0,
+        as_of: Optional[datetime] = None,
+        enforce_simulation_clock: bool = True,
+    ) -> TimeWindowValidationResult:
+        """
+        Validates hard time window constraints, service duration, travel time feasibility,
+        and simulation clock bounds for a specific database job.
+        """
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+
+        ref_clock = as_of or self.get_simulation_clock()
+
+        return validate_job_instance_time_window(
+            job=job,
+            proposed_start=proposed_start,
+            proposed_end=proposed_end,
+            origin_departure_time=origin_departure_time,
+            travel_minutes=travel_minutes,
+            as_of=ref_clock,
+            enforce_simulation_clock=enforce_simulation_clock,
+        )
+
+    def calculate_job_feasible_window(
+        self,
+        job_id: str,
+        origin_departure_time: Optional[datetime] = None,
+        travel_minutes: float = 0.0,
+        as_of: Optional[datetime] = None,
+        enforce_simulation_clock: bool = True,
+    ) -> FeasibleWindowResult:
+        """
+        Calculates the permissible scheduling window [earliest_feasible_start, latest_feasible_start]
+        for a job taking into account transit time, duration, and simulation reference clock.
+        """
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+
+        ref_clock = as_of or self.get_simulation_clock()
+
+        return calculate_feasible_service_window(
+            time_window_start=job.time_window_start,
+            time_window_end=job.time_window_end,
+            duration_minutes=job.duration_minutes,
+            sla_deadline=job.sla_deadline,
+            origin_departure_time=origin_departure_time,
+            travel_minutes=travel_minutes,
+            as_of=ref_clock,
+            enforce_simulation_clock=enforce_simulation_clock,
+            job_id=job.id,
+        )
+
 
 
 

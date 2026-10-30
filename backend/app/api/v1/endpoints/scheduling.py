@@ -27,6 +27,9 @@ from app.scheduling.schemas import (
     TravelCalculationResponse,
     TechnicianAvailabilityEvaluation,
     AvailabilityCheckRequest,
+    TimeWindowValidationResult,
+    FeasibleWindowResult,
+    TimeWindowCheckRequest,
 )
 
 from app.scheduling.service import SchedulingService
@@ -34,6 +37,11 @@ from app.scheduling.loader import load_eligible_technicians
 from app.scheduling.skills import filter_technicians_by_skills
 from app.scheduling.equipment import filter_candidates_for_job
 from app.scheduling.geo import haversine_distance, calculate_travel_minutes
+from app.scheduling.time_windows import (
+    validate_job_time_window,
+    validate_job_instance_time_window,
+    calculate_feasible_service_window,
+)
 
 
 
@@ -515,3 +523,133 @@ def check_eligibility(
         job_time_window_end=window_end,
         job_duration_minutes=duration,
     )
+
+
+@router.post(
+    "/scheduling/time-windows/validate",
+    response_model=TimeWindowValidationResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Time Windows"],
+    summary="Validate job hard time windows, service duration, and soft SLA deadlines",
+)
+def validate_time_window_endpoint(
+    req: TimeWindowCheckRequest,
+    db: Session = Depends(get_db),
+) -> TimeWindowValidationResult:
+    """
+    Evaluates hard time window constraints, service duration, transit time feasibility,
+    and simulation reference clock limits, while computing soft SLA lateness.
+    """
+    service = SchedulingService(db)
+    ref_clock = req.as_of or service.get_clock()
+
+    # If job_id is supplied, load job details as baseline
+    w_start = req.time_window_start
+    w_end = req.time_window_end
+    duration = req.duration_minutes
+    sla = req.sla_deadline
+
+    if req.job_id:
+        job = db.query(Job).filter_by(id=req.job_id).first()
+        if not job:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Job with ID '{req.job_id}' not found.",
+            )
+        w_start = w_start or job.time_window_start
+        w_end = w_end or job.time_window_end
+        duration = duration or job.duration_minutes
+        sla = sla or job.sla_deadline
+
+    if not w_start or not w_end or not duration:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="time_window_start, time_window_end, and duration_minutes must be specified or resolved from job_id.",
+        )
+
+    return validate_job_time_window(
+        time_window_start=w_start,
+        time_window_end=w_end,
+        duration_minutes=duration,
+        proposed_start=req.proposed_start,
+        proposed_end=req.proposed_end,
+        sla_deadline=sla,
+        job_id=req.job_id,
+        origin_departure_time=req.origin_departure_time,
+        travel_minutes=req.travel_minutes or 0.0,
+        as_of=ref_clock,
+        enforce_simulation_clock=req.enforce_simulation_clock,
+    )
+
+
+@router.get(
+    "/scheduling/time-windows/job/{job_id}",
+    response_model=TimeWindowValidationResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Time Windows"],
+    summary="Evaluate time window and SLA compliance for a specific job",
+)
+def get_job_time_window_validation(
+    job_id: str,
+    proposed_start: Optional[datetime] = None,
+    proposed_end: Optional[datetime] = None,
+    origin_departure_time: Optional[datetime] = None,
+    travel_minutes: float = 0.0,
+    enforce_simulation_clock: bool = True,
+    db: Session = Depends(get_db),
+) -> TimeWindowValidationResult:
+    """
+    Validates proposed appointment timestamps against a specific database job.
+    Defaults proposed_start to job.time_window_start if omitted.
+    """
+    service = SchedulingService(db)
+    job = db.query(Job).filter_by(id=job_id).first()
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with ID '{job_id}' not found.",
+        )
+
+    start_dt = proposed_start or job.time_window_start
+    return service.validate_job_time_window(
+        job_id=job_id,
+        proposed_start=start_dt,
+        proposed_end=proposed_end,
+        origin_departure_time=origin_departure_time,
+        travel_minutes=travel_minutes,
+        enforce_simulation_clock=enforce_simulation_clock,
+    )
+
+
+@router.get(
+    "/scheduling/time-windows/job/{job_id}/feasible",
+    response_model=FeasibleWindowResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Time Windows"],
+    summary="Compute earliest and latest feasible scheduling boundaries for a job",
+)
+def get_job_feasible_window_bounds(
+    job_id: str,
+    origin_departure_time: Optional[datetime] = None,
+    travel_minutes: float = 0.0,
+    enforce_simulation_clock: bool = True,
+    db: Session = Depends(get_db),
+) -> FeasibleWindowResult:
+    """
+    Computes earliest and latest feasible start times for a job given its hard window,
+    transit time, simulation clock, and soft SLA deadline.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.calculate_job_feasible_window(
+            job_id=job_id,
+            origin_departure_time=origin_departure_time,
+            travel_minutes=travel_minutes,
+            enforce_simulation_clock=enforce_simulation_clock,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
