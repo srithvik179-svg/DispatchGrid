@@ -501,6 +501,138 @@ class FeasibilityEvaluationRequest(BaseModel):
     include_technician_details: bool = True
 
 
+class ScheduleGenerateRequest(BaseModel):
+    """Request payload for triggering automatic schedule generation."""
+    as_of: Optional[datetime] = Field(None, description="Simulation reference clock timestamp.")
+    persist: bool = Field(default=True, description="Whether to persist newly planned assignments to database.")
+    mode: str = Field(default="baseline", description="Scheduling mode: 'baseline', 'recovery', 'simulation'.")
+    respect_existing_assignments: bool = Field(default=True, description="Strictly preserve all pre-existing assignments.")
+
+
+class ScheduleAssignmentItem(BaseModel):
+    """Structured assignment entry for a job dispatched to a technician."""
+    assignment_id: Optional[int] = None
+    job_id: str
+    technician_id: str
+    technician_name: Optional[str] = None
+    job_title: Optional[str] = None
+    customer_name: Optional[str] = None
+    zone_id: Optional[str] = None
+    priority: Optional[int] = None
+    priority_label: Optional[str] = None
+    start_time: datetime
+    end_time: datetime
+    duration_minutes: int
+    travel_time_minutes: float = 0.0
+    distance_km: float = 0.0
+    status: str = "scheduled"
+    is_existing: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UnassignedJobExplanation(BaseModel):
+    """Detailed explanation of why an unassigned job could not be scheduled."""
+    job_id: str
+    title: str
+    customer_name: str
+    zone_id: Optional[str] = None
+    priority: int
+    priority_label: str
+    duration_minutes: int
+    classification: str = Field(..., description="'currently_infeasible' or 'permanently_impossible'")
+    primary_category: str = Field(..., description="Root failure category")
+    rejection_summary: str
+    actionable_recommendation: str
+    required_skills: List[str] = Field(default_factory=list)
+    required_equipment: List[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScheduleGenerateResponse(BaseModel):
+    """Complete response from schedule generation API."""
+    run_id: str
+    as_of: datetime
+    total_jobs: int
+    assigned_count: int
+    unassigned_count: int
+    technicians_count: int
+    technicians_utilized: int
+    persisted: bool
+    existing_assignments_preserved: bool
+    assignments: List[ScheduleAssignmentItem] = Field(default_factory=list)
+    unassigned_jobs: List[UnassignedJobExplanation] = Field(default_factory=list)
+    metrics: Dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScheduleCurrentResponse(BaseModel):
+    """Current operational schedule in the system."""
+    as_of: datetime
+    total_jobs: int
+    assigned_count: int
+    unassigned_count: int
+    technicians_count: int
+    technicians_utilized: int
+    assignments: List[ScheduleAssignmentItem] = Field(default_factory=list)
+    unassigned_jobs: List[UnassignedJobExplanation] = Field(default_factory=list)
+    metrics: Dict[str, Any] = Field(default_factory=dict)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class JobAssignmentResponse(BaseModel):
+    """Individual job assignment lookup and status response."""
+    job_id: str
+    is_assigned: bool
+    status: str
+    assignment: Optional[ScheduleAssignmentItem] = None
+    feasibility: Optional[JobFeasibilityReport] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TechnicianItineraryItem(BaseModel):
+    """Sequential stop item in a technician's route schedule."""
+    assignment_id: Optional[int] = None
+    job_id: str
+    job_title: str
+    customer_name: str
+    zone_id: Optional[str] = None
+    lat: float
+    lng: float
+    start_time: datetime
+    end_time: datetime
+    duration_minutes: int
+    travel_from_previous_minutes: float = 0.0
+    distance_from_previous_km: float = 0.0
+    status: str
+    is_existing: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TechnicianScheduleResponse(BaseModel):
+    """Full operational route and assignment schedule for an individual technician."""
+    technician_id: str
+    technician_name: str
+    home_zone_id: Optional[str] = None
+    home_lat: float
+    home_lng: float
+    eligible_zones: List[str] = Field(default_factory=list)
+    skills: List[str] = Field(default_factory=list)
+    equipment: List[str] = Field(default_factory=list)
+    total_assigned_jobs: int
+    total_working_minutes: int
+    total_travel_minutes: float
+    itinerary: List[TechnicianItineraryItem] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+
 
 
 

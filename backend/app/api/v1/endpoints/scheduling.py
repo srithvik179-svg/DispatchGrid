@@ -37,6 +37,11 @@ from app.scheduling.schemas import (
     JobFeasibilityReport,
     FleetFeasibilitySummary,
     FeasibilityEvaluationRequest,
+    ScheduleGenerateRequest,
+    ScheduleGenerateResponse,
+    ScheduleCurrentResponse,
+    JobAssignmentResponse,
+    TechnicianScheduleResponse,
 )
 
 from app.scheduling.service import SchedulingService
@@ -873,6 +878,144 @@ def evaluate_feasibility_endpoint(
                 detail=str(e),
             )
     return service.get_fleet_feasibility(as_of=req.as_of)
+
+
+# =========================================================================
+# PHASE 22 – Scheduling API Endpoints
+# =========================================================================
+
+@router.post(
+    "/schedule/generate",
+    response_model=ScheduleGenerateResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Trigger automatic schedule generation and safely persist assignments",
+)
+@router.post(
+    "/scheduling/generate",
+    response_model=ScheduleGenerateResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def generate_schedule_endpoint(
+    req: Optional[ScheduleGenerateRequest] = None,
+    db: Session = Depends(get_db),
+) -> ScheduleGenerateResponse:
+    """
+    Executes the automatic scheduling engine across all pending jobs,
+    persisting new assignments safely into the database while strictly preserving
+    all pre-existing assignments. Returns structured assignments and diagnostic
+    explanations for all unassigned jobs.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.generate_and_persist_schedule(req=req)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Scheduling execution failed: {str(e)}",
+        )
+
+
+@router.get(
+    "/schedule/current",
+    response_model=ScheduleCurrentResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Retrieve current operational schedule, assigned jobs, and unassigned explanations",
+)
+@router.get(
+    "/scheduling/current",
+    response_model=ScheduleCurrentResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_current_schedule_endpoint(
+    db: Session = Depends(get_db),
+) -> ScheduleCurrentResponse:
+    """
+    Retrieves the current operational workforce schedule from the database,
+    providing all assigned jobs, technician routes, and actionable feasibility
+    diagnostics for pending/unassigned jobs.
+    """
+    service = SchedulingService(db)
+    return service.get_current_schedule()
+
+
+@router.get(
+    "/jobs/{job_id}/assignment",
+    response_model=JobAssignmentResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Get assignment status and technician details for a specific job",
+)
+def get_job_assignment_endpoint(
+    job_id: str,
+    db: Session = Depends(get_db),
+) -> JobAssignmentResponse:
+    """
+    Returns dispatch assignment details if job is assigned, or diagnostic
+    feasibility explanation explaining why it remains unassigned.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.get_job_assignment(job_id=job_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/technicians/{technician_id}/schedule",
+    response_model=TechnicianScheduleResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Get full sequential itinerary and route schedule for a technician",
+)
+def get_technician_schedule_endpoint(
+    technician_id: str,
+    db: Session = Depends(get_db),
+) -> TechnicianScheduleResponse:
+    """
+    Returns sequential route schedule for a technician, including Haversine transit
+    buffers and distances between consecutive stops.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.get_technician_schedule(technician_id=technician_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/schedule/reset",
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Reset schedule to baseline preserving the 7 existing assignments",
+)
+@router.post(
+    "/scheduling/reset",
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def reset_schedule_endpoint(
+    db: Session = Depends(get_db),
+):
+    """
+    Clears all newly generated assignments and reverts modified jobs back to pending,
+    strictly preserving all 7 pre-existing assignments.
+    """
+    service = SchedulingService(db)
+    return service.reset_schedule_to_baseline()
+
 
 
 

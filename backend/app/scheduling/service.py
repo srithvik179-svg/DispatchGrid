@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.models.job import Job
 from app.models.technician import Technician
+from app.models.assignment import Assignment
 from app.models.system import SystemMetadata
 from app.scheduling.schemas import (
     SchedulingRunConfig,
@@ -26,6 +27,14 @@ from app.scheduling.schemas import (
     ConflictCheckResult,
     JobFeasibilityReport,
     FleetFeasibilitySummary,
+    ScheduleGenerateRequest,
+    ScheduleAssignmentItem,
+    UnassignedJobExplanation,
+    ScheduleGenerateResponse,
+    ScheduleCurrentResponse,
+    JobAssignmentResponse,
+    TechnicianItineraryItem,
+    TechnicianScheduleResponse,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -47,6 +56,8 @@ from app.scheduling.equipment import (
 )
 from app.scheduling.geo import (
     DEFAULT_TRANSIT_SPEED_KMH,
+    haversine_distance,
+    calculate_travel_minutes,
     calculate_home_to_job_travel,
     calculate_inter_job_travel,
     evaluate_geographic_eligibility,
@@ -637,5 +648,418 @@ class SchedulingService:
             fleet_equipment=fleet_equip,
             run_id=inputs.run_id,
         )
+
+    def generate_and_persist_schedule(
+        self,
+        req: Optional[ScheduleGenerateRequest] = None,
+    ) -> ScheduleGenerateResponse:
+        """
+        Generates an automatic deterministic schedule across all pending jobs,
+        persisting new assignments safely while strictly preserving existing assignments.
+        Returns complete assigned plans and unassigned job feasibility explanations.
+        """
+        request = req or ScheduleGenerateRequest()
+        clock_as_of = request.as_of
+        persist = request.persist
+
+        run_id = generate_run_id()
+        config = SchedulingRunConfig(
+            as_of=clock_as_of,
+            mode=request.mode,
+            respect_existing_assignments=request.respect_existing_assignments,
+        )
+        inputs = self.load_inputs(run_id=run_id, config=config)
+        unsupported = self.get_unsupported_skills()
+        fleet_equip = self.get_fleet_equipment()
+
+        # Run the deterministic initial scheduling algorithm
+        sched_result = run_deterministic_initial_scheduler(inputs, unsupported_skills=unsupported)
+
+        # Lookup maps for fast enrichment
+        jobs_map = {j.id: j for j in self.db.query(Job).all()}
+        techs_map = {t.id: t for t in self.db.query(Technician).all()}
+
+        # 1. Persist to database if requested
+        if persist:
+            # Strictly identify existing assignment job IDs to protect
+            existing_records = self.db.query(Assignment).filter(
+                (Assignment.is_existing == True) | (Assignment.status.in_(["completed", "in_progress"]))
+            ).all()
+            protected_job_ids = {a.job_id for a in existing_records}
+
+            # Delete previous non-existing generated assignments
+            self.db.query(Assignment).filter_by(is_existing=False).delete()
+
+            # Reset previous non-existing jobs back to pending
+            non_existing_jobs = self.db.query(Job).filter(
+                ~Job.id.in_(protected_job_ids),
+                Job.status == "assigned"
+            ).all()
+            for j in non_existing_jobs:
+                j.status = "pending"
+                j.assigned_technician_id = None
+                j.scheduled_start = None
+                j.scheduled_end = None
+
+            # Persist newly scheduled job plans
+            for plan in sched_result.assignments:
+                if plan.is_existing or plan.job_id in protected_job_ids:
+                    continue
+
+                new_assignment = Assignment(
+                    job_id=plan.job_id,
+                    technician_id=plan.technician_id,
+                    start_time=plan.scheduled_start,
+                    end_time=plan.scheduled_end,
+                    status=plan.status or "scheduled",
+                    is_existing=False,
+                )
+                self.db.add(new_assignment)
+
+                job_record = jobs_map.get(plan.job_id)
+                if job_record:
+                    job_record.status = "assigned"
+                    job_record.assigned_technician_id = plan.technician_id
+                    job_record.scheduled_start = plan.scheduled_start
+                    job_record.scheduled_end = plan.scheduled_end
+
+            self.db.commit()
+
+        # Reload assignments with generated IDs
+        assignments_records = self.db.query(Assignment).all() if persist else []
+        assign_id_map = {a.job_id: a.id for a in assignments_records}
+
+        # Build structured ScheduleAssignmentItems
+        structured_assignments: List[ScheduleAssignmentItem] = []
+        assigned_tech_ids = set()
+
+        for plan in sched_result.assignments:
+            assigned_tech_ids.add(plan.technician_id)
+            job = jobs_map.get(plan.job_id)
+            tech = techs_map.get(plan.technician_id)
+            dist_km = 0.0
+            if job and tech:
+                dist_km = haversine_distance(tech.home_lat, tech.home_lng, job.lat, job.lng)
+
+            item = ScheduleAssignmentItem(
+                assignment_id=assign_id_map.get(plan.job_id),
+                job_id=plan.job_id,
+                technician_id=plan.technician_id,
+                technician_name=tech.name if tech else plan.technician_id,
+                job_title=job.title if job else None,
+                customer_name=job.customer_name if job else None,
+                zone_id=job.zone_id if job else None,
+                priority=job.priority if job else None,
+                priority_label=job.priority_label if job else None,
+                start_time=plan.scheduled_start,
+                end_time=plan.scheduled_end,
+                duration_minutes=int((plan.scheduled_end - plan.scheduled_start).total_seconds() / 60),
+                travel_time_minutes=plan.travel_time_minutes,
+                distance_km=round(dist_km, 2),
+                status=plan.status,
+                is_existing=plan.is_existing,
+            )
+            structured_assignments.append(item)
+
+        # 2. Build unassigned job diagnostic explanations
+        itineraries = {t.id: [] for t in inputs.technicians}
+        for plan in sched_result.assignments:
+            job = jobs_map.get(plan.job_id)
+            if job and plan.technician_id in itineraries:
+                itineraries[plan.technician_id].append({
+                    "job_id": plan.job_id,
+                    "technician_id": plan.technician_id,
+                    "start_time": plan.scheduled_start,
+                    "end_time": plan.scheduled_end,
+                    "status": plan.status,
+                    "lat": job.lat,
+                    "lng": job.lng,
+                    "zone_id": job.zone_id,
+                })
+
+        unassigned_explanations: List[UnassignedJobExplanation] = []
+        from app.schemas.job import JobResponse
+        for unassigned_id in sched_result.unassigned_jobs:
+            job = jobs_map.get(unassigned_id)
+            if not job:
+                continue
+            job_resp = JobResponse.model_validate(job)
+            feasibility = classify_job_feasibility(
+                job=job_resp,
+                technicians=inputs.technicians,
+                technician_itineraries=itineraries,
+                as_of=inputs.as_of,
+                unsupported_skills=unsupported,
+                fleet_equipment=fleet_equip,
+            )
+            unassigned_explanations.append(
+                UnassignedJobExplanation(
+                    job_id=job.id,
+                    title=job.title,
+                    customer_name=job.customer_name,
+                    zone_id=job.zone_id,
+                    priority=job.priority,
+                    priority_label=job.priority_label,
+                    duration_minutes=job.duration_minutes,
+                    classification=feasibility.classification,
+                    primary_category=feasibility.primary_category,
+                    rejection_summary=feasibility.rejection_summary,
+                    actionable_recommendation=feasibility.actionable_recommendation,
+                    required_skills=job.required_skills or [],
+                    required_equipment=job.required_equipment or [],
+                )
+            )
+
+        return ScheduleGenerateResponse(
+            run_id=sched_result.run_id,
+            as_of=sched_result.as_of,
+            total_jobs=sched_result.total_jobs,
+            assigned_count=len(structured_assignments),
+            unassigned_count=len(unassigned_explanations),
+            technicians_count=len(inputs.technicians),
+            technicians_utilized=len(assigned_tech_ids),
+            persisted=persist,
+            existing_assignments_preserved=sched_result.existing_assignments_preserved,
+            assignments=structured_assignments,
+            unassigned_jobs=unassigned_explanations,
+            metrics=sched_result.metrics,
+        )
+
+    def get_current_schedule(self) -> ScheduleCurrentResponse:
+        """
+        Retrieves the current operational schedule from the database,
+        reflecting all saved assignments and pending/unassigned jobs with feasibility explanations.
+        """
+        as_of = self.get_clock()
+        assignments = self.db.query(Assignment).order_by(Assignment.start_time.asc()).all()
+        jobs_map = {j.id: j for j in self.db.query(Job).all()}
+        techs_map = {t.id: t for t in self.db.query(Technician).all()}
+
+        structured_assignments: List[ScheduleAssignmentItem] = []
+        assigned_tech_ids = set()
+
+        for a in assignments:
+            assigned_tech_ids.add(a.technician_id)
+            job = jobs_map.get(a.job_id)
+            tech = techs_map.get(a.technician_id)
+            dist_km = 0.0
+            travel_mins = 0.0
+            if job and tech:
+                dist_km = haversine_distance(tech.home_lat, tech.home_lng, job.lat, job.lng)
+                travel_mins = calculate_travel_minutes(dist_km)
+
+            structured_assignments.append(
+                ScheduleAssignmentItem(
+                    assignment_id=a.id,
+                    job_id=a.job_id,
+                    technician_id=a.technician_id,
+                    technician_name=tech.name if tech else a.technician_id,
+                    job_title=job.title if job else None,
+                    customer_name=job.customer_name if job else None,
+                    zone_id=job.zone_id if job else None,
+                    priority=job.priority if job else None,
+                    priority_label=job.priority_label if job else None,
+                    start_time=a.start_time,
+                    end_time=a.end_time,
+                    duration_minutes=int((a.end_time - a.start_time).total_seconds() / 60),
+                    travel_time_minutes=round(travel_mins, 2),
+                    distance_km=round(dist_km, 2),
+                    status=a.status,
+                    is_existing=a.is_existing,
+                )
+            )
+
+        # Unassigned jobs
+        assigned_job_ids = {a.job_id for a in assignments}
+        unassigned_jobs = [
+            j for j in jobs_map.values()
+            if j.id not in assigned_job_ids and j.status in ["pending", "unassigned"]
+        ]
+
+        # Feasibility explanations for unassigned jobs
+        unassigned_explanations: List[UnassignedJobExplanation] = []
+        for job in unassigned_jobs:
+            feasibility = self.get_job_feasibility(job.id, as_of=as_of)
+            unassigned_explanations.append(
+                UnassignedJobExplanation(
+                    job_id=job.id,
+                    title=job.title,
+                    customer_name=job.customer_name,
+                    zone_id=job.zone_id,
+                    priority=job.priority,
+                    priority_label=job.priority_label,
+                    duration_minutes=job.duration_minutes,
+                    classification=feasibility.classification,
+                    primary_category=feasibility.primary_category,
+                    rejection_summary=feasibility.rejection_summary,
+                    actionable_recommendation=feasibility.actionable_recommendation,
+                    required_skills=job.required_skills or [],
+                    required_equipment=job.required_equipment or [],
+                )
+            )
+
+        return ScheduleCurrentResponse(
+            as_of=as_of,
+            total_jobs=len(jobs_map),
+            assigned_count=len(structured_assignments),
+            unassigned_count=len(unassigned_explanations),
+            technicians_count=len(techs_map),
+            technicians_utilized=len(assigned_tech_ids),
+            assignments=structured_assignments,
+            unassigned_jobs=unassigned_explanations,
+            metrics={
+                "locked_existing_assignments": sum(1 for a in assignments if a.is_existing),
+                "scheduled_assignments": sum(1 for a in assignments if not a.is_existing),
+            },
+        )
+
+    def get_job_assignment(self, job_id: str) -> JobAssignmentResponse:
+        """
+        Retrieves assignment details for a specific job, or feasibility diagnostic if unassigned.
+        """
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+
+        assign = self.db.query(Assignment).filter_by(job_id=job_id).first()
+        if assign:
+            tech = self.db.query(Technician).filter_by(id=assign.technician_id).first()
+            dist_km = 0.0
+            travel_mins = 0.0
+            if tech:
+                dist_km = haversine_distance(tech.home_lat, tech.home_lng, job.lat, job.lng)
+                travel_mins = calculate_travel_minutes(dist_km)
+
+            item = ScheduleAssignmentItem(
+                assignment_id=assign.id,
+                job_id=assign.job_id,
+                technician_id=assign.technician_id,
+                technician_name=tech.name if tech else assign.technician_id,
+                job_title=job.title,
+                customer_name=job.customer_name,
+                zone_id=job.zone_id,
+                priority=job.priority,
+                priority_label=job.priority_label,
+                start_time=assign.start_time,
+                end_time=assign.end_time,
+                duration_minutes=int((assign.end_time - assign.start_time).total_seconds() / 60),
+                travel_time_minutes=round(travel_mins, 2),
+                distance_km=round(dist_km, 2),
+                status=assign.status,
+                is_existing=assign.is_existing,
+            )
+            return JobAssignmentResponse(
+                job_id=job.id,
+                is_assigned=True,
+                status=job.status,
+                assignment=item,
+            )
+
+        # Unassigned: retrieve feasibility
+        feasibility = self.get_job_feasibility(job_id)
+        return JobAssignmentResponse(
+            job_id=job.id,
+            is_assigned=False,
+            status=job.status,
+            feasibility=feasibility,
+        )
+
+    def get_technician_schedule(self, technician_id: str) -> TechnicianScheduleResponse:
+        """
+        Retrieves the complete itinerary and sequential schedule for a technician,
+        including Haversine travel times and distances between consecutive stops.
+        """
+        tech = self.db.query(Technician).filter_by(id=technician_id).first()
+        if not tech:
+            raise ValueError(f"Technician with ID '{technician_id}' not found.")
+
+        assignments = self.db.query(Assignment).filter_by(technician_id=technician_id).order_by(Assignment.start_time.asc()).all()
+        jobs_map = {j.id: j for j in self.db.query(Job).all()}
+
+        itinerary: List[TechnicianItineraryItem] = []
+        prev_lat = tech.home_lat
+        prev_lng = tech.home_lng
+        total_work_mins = 0
+        total_travel_mins = 0.0
+
+        for a in assignments:
+            job = jobs_map.get(a.job_id)
+            if not job:
+                continue
+
+            dist_km = haversine_distance(prev_lat, prev_lng, job.lat, job.lng)
+            travel_mins = calculate_travel_minutes(dist_km)
+            duration_mins = int((a.end_time - a.start_time).total_seconds() / 60)
+
+            total_work_mins += duration_mins
+            total_travel_mins += travel_mins
+
+            itinerary.append(
+                TechnicianItineraryItem(
+                    assignment_id=a.id,
+                    job_id=job.id,
+                    job_title=job.title,
+                    customer_name=job.customer_name,
+                    zone_id=job.zone_id,
+                    lat=job.lat,
+                    lng=job.lng,
+                    start_time=a.start_time,
+                    end_time=a.end_time,
+                    duration_minutes=duration_mins,
+                    travel_from_previous_minutes=round(travel_mins, 2),
+                    distance_from_previous_km=round(dist_km, 2),
+                    status=a.status,
+                    is_existing=a.is_existing,
+                )
+            )
+
+            prev_lat = job.lat
+            prev_lng = job.lng
+
+        return TechnicianScheduleResponse(
+            technician_id=tech.id,
+            technician_name=tech.name,
+            home_zone_id=tech.home_zone_id,
+            home_lat=tech.home_lat,
+            home_lng=tech.home_lng,
+            eligible_zones=tech.eligible_zones or [],
+            skills=tech.skills or [],
+            equipment=tech.equipment or [],
+            total_assigned_jobs=len(itinerary),
+            total_working_minutes=total_work_mins,
+            total_travel_minutes=round(total_travel_mins, 2),
+            itinerary=itinerary,
+        )
+
+    def reset_schedule_to_baseline(self) -> Dict[str, Any]:
+        """
+        Clears all non-existing generated assignments and reverts modified jobs back to pending,
+        strictly preserving the 7 seeded existing assignments.
+        """
+        existing_records = self.db.query(Assignment).filter(
+            (Assignment.is_existing == True) | (Assignment.status.in_(["completed", "in_progress"]))
+        ).all()
+        protected_job_ids = {a.job_id for a in existing_records}
+
+        deleted_count = self.db.query(Assignment).filter_by(is_existing=False).delete()
+
+        reverted_jobs = self.db.query(Job).filter(
+            ~Job.id.in_(protected_job_ids),
+            Job.status == "assigned"
+        ).all()
+        for j in reverted_jobs:
+            j.status = "pending"
+            j.assigned_technician_id = None
+            j.scheduled_start = None
+            j.scheduled_end = None
+
+        self.db.commit()
+
+        return {
+            "deleted_assignments": deleted_count,
+            "reverted_jobs": len(reverted_jobs),
+            "preserved_existing_assignments": len(existing_records),
+        }
+
 
 
