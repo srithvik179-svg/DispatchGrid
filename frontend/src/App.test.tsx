@@ -62,6 +62,12 @@ describe('DispatchGrid Application Shell & Routing', () => {
             json: async () => mockOverview,
           });
         }
+        if (url.includes('/jobs')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockOverview.jobs,
+          });
+        }
         return Promise.resolve({
           ok: true,
           json: async () => ({
@@ -141,7 +147,9 @@ describe('DispatchGrid Application Shell & Routing', () => {
 
     await waitFor(() => {
       expect(screen.getByText('Jobs Management')).toBeInTheDocument();
-      expect(screen.getByText('Jobs Management Engine Interface')).toBeInTheDocument();
+      expect(
+        screen.getByText(/Catalog, inspection, and creation of customer field service requests/i)
+      ).toBeInTheDocument();
     });
   });
 

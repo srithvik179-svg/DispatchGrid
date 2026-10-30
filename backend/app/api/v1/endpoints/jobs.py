@@ -68,15 +68,23 @@ def create_new_job(
     summary="List all service jobs",
 )
 def list_jobs(
+    search: Optional[str] = Query(None, description="Search term for ID, title, or customer"),
     status_filter: Optional[str] = Query(None, alias="status"),
     priority_filter: Optional[int] = Query(None, alias="priority"),
     zone_filter: Optional[str] = Query(None, alias="zone_id"),
-    limit: int = Query(100, ge=1, le=200),
+    limit: int = Query(200, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> List[JobResponse]:
-    """Lists service jobs with optional status, priority, and zone filtering."""
+    """Lists service jobs with optional search, status, priority, and zone filtering."""
     query = db.query(Job)
+    if search:
+        search_pattern = f"%{search.strip()}%"
+        query = query.filter(
+            (Job.id.ilike(search_pattern))
+            | (Job.title.ilike(search_pattern))
+            | (Job.customer_name.ilike(search_pattern))
+        )
     if status_filter:
         query = query.filter(Job.status == status_filter)
     if priority_filter is not None:
@@ -84,7 +92,7 @@ def list_jobs(
     if zone_filter:
         query = query.filter(Job.zone_id == zone_filter)
 
-    jobs = query.order_by(Job.created_at.asc(), Job.id.asc()).offset(offset).limit(limit).all()
+    jobs = query.order_by(Job.id.asc()).offset(offset).limit(limit).all()
     return [JobResponse.model_validate(j) for j in jobs]
 
 

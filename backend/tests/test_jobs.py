@@ -232,3 +232,30 @@ async def test_existing_seeded_jobs_remain_unaffected(db_session):
     seed_j101 = db_session.query(Job).filter_by(id="JOB-101").first()
     assert seed_j101 is not None
     assert seed_j101.status == "completed"
+
+
+@pytest.mark.asyncio
+async def test_list_jobs_search_and_filters(client: AsyncClient):
+    """Verify list_jobs filters by status, priority, and search."""
+    # 1. Search by ID
+    res = await client.get("/api/v1/jobs?search=JOB-001")
+    assert res.status_code == 200
+    data = res.json()
+    assert len(data) >= 1
+    assert data[0]["id"] == "JOB-001"
+
+    # 2. Filter by status
+    res_status = await client.get("/api/v1/jobs?status=completed")
+    assert res_status.status_code == 200
+    completed_jobs = res_status.json()
+    assert len(completed_jobs) == 4
+    for j in completed_jobs:
+        assert j["status"] == "completed"
+
+    # 3. Filter by priority
+    res_priority = await client.get("/api/v1/jobs?priority=1")
+    assert res_priority.status_code == 200
+    urgent_jobs = res_priority.json()
+    assert len(urgent_jobs) > 0
+    for j in urgent_jobs:
+        assert j["priority"] == 1
