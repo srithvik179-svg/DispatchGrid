@@ -44,6 +44,10 @@ from app.scheduling.schemas import (
     TravelOptimizationResult,
     TechnicianTravelSummary,
     TravelMetricsComparison,
+    JobSLADetail,
+    FleetSLAMetrics,
+    SLAOptimizationResult,
+    CompetingSLAResolution,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -1318,6 +1322,213 @@ class SchedulingService:
             "fleet_metrics": metrics,
             "technician_travel": summaries,
         }
+
+    # =========================================================================
+    # PHASE 26 – SLA Optimisation & Deadline Performance Engine
+    # =========================================================================
+
+    def get_sla_metrics(
+        self,
+        lateness_weight: float = 2.0,
+        at_risk_threshold_minutes: int = 30,
+    ) -> Dict[str, Any]:
+        """
+        Calculates and returns fleet-wide SLA timeliness metrics and granular job status.
+        """
+        from app.scheduling.sla_opt import calculate_fleet_sla_metrics
+        from app.scheduling.algorithm import run_deterministic_initial_scheduler
+
+        db_assignments = self.db.query(Assignment).all()
+        if len(db_assignments) <= 7:
+            inputs = self.load_inputs()
+            init_res = run_deterministic_initial_scheduler(
+                inputs=inputs,
+                unsupported_skills=self.get_unsupported_skills(),
+            )
+            plans = init_res.assignments
+        else:
+            plans = []
+            for a in db_assignments:
+                job = self.db.query(Job).filter_by(id=a.job_id).first()
+                plans.append(
+                    AssignedJobPlan(
+                        job_id=a.job_id,
+                        technician_id=a.technician_id,
+                        scheduled_start=a.start_time,
+                        scheduled_end=a.end_time,
+                        travel_time_minutes=0.0,
+                        is_existing=a.is_existing,
+                        status=a.status,
+                        details={"job_title": job.title if job else ""},
+                    )
+                )
+
+        jobs_all = [JobResponse.model_validate(j) for j in self.db.query(Job).all()]
+        details, metrics = calculate_fleet_sla_metrics(
+            jobs=jobs_all,
+            assignments=plans,
+            as_of=self.get_clock(),
+            lateness_weight=lateness_weight,
+            at_risk_threshold_minutes=at_risk_threshold_minutes,
+        )
+
+        return {
+            "fleet_metrics": metrics,
+            "job_sla_details": details,
+        }
+
+    def get_job_sla_detail(
+        self,
+        job_id: str,
+        lateness_weight: float = 2.0,
+        at_risk_threshold_minutes: int = 30,
+    ) -> JobSLADetail:
+        """
+        Retrieves SLA timeliness status and delay metrics for an individual job.
+        """
+        from app.scheduling.sla_opt import calculate_job_sla_detail
+
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job {job_id} not found")
+
+        assignment = self.db.query(Assignment).filter_by(job_id=job_id).first()
+        plan = None
+        if assignment:
+            plan = AssignedJobPlan(
+                job_id=assignment.job_id,
+                technician_id=assignment.technician_id,
+                scheduled_start=assignment.start_time,
+                scheduled_end=assignment.end_time,
+                travel_time_minutes=0.0,
+                is_existing=assignment.is_existing,
+                status=assignment.status,
+            )
+        else:
+            db_assignments = self.db.query(Assignment).all()
+            if len(db_assignments) <= 7:
+                inputs = self.load_inputs()
+                init_res = run_deterministic_initial_scheduler(
+                    inputs=inputs,
+                    unsupported_skills=self.get_unsupported_skills(),
+                )
+                plan = next((p for p in init_res.assignments if p.job_id == job_id), None)
+
+        return calculate_job_sla_detail(
+            job=JobResponse.model_validate(job),
+            assignment=plan,
+            as_of=self.get_clock(),
+            lateness_weight=lateness_weight,
+            at_risk_threshold_minutes=at_risk_threshold_minutes,
+        )
+
+    def resolve_competing_sla_deadlines(
+        self,
+        job_id_a: str,
+        job_id_b: str,
+    ) -> CompetingSLAResolution:
+        """
+        Deterministically arbitrates between two competing jobs with approaching SLA targets.
+        """
+        from app.scheduling.sla_opt import resolve_competing_sla_deadlines
+
+        job_a = self.db.query(Job).filter_by(id=job_id_a).first()
+        if not job_a:
+            raise ValueError(f"Job {job_id_a} not found")
+
+        job_b = self.db.query(Job).filter_by(id=job_id_b).first()
+        if not job_b:
+            raise ValueError(f"Job {job_id_b} not found")
+
+        return resolve_competing_sla_deadlines(
+            job_a=JobResponse.model_validate(job_a),
+            job_b=JobResponse.model_validate(job_b),
+            as_of=self.get_clock(),
+        )
+
+    def optimize_sla(
+        self,
+        lateness_weight: float = 2.0,
+        at_risk_threshold_minutes: int = 30,
+        persist: bool = False,
+        run_id: Optional[str] = None,
+    ) -> SLAOptimizationResult:
+        """
+        Executes SLA schedule optimization pass to mitigate lateness and protect at-risk jobs.
+        """
+        from app.scheduling.sla_opt import optimize_schedule_sla
+        from app.scheduling.algorithm import run_deterministic_initial_scheduler
+
+        as_of = self.get_clock()
+        inputs = self.load_inputs(config=SchedulingRunConfig(as_of=as_of))
+
+        db_assignments = self.db.query(Assignment).all()
+        if len(db_assignments) <= 7:
+            init_res = run_deterministic_initial_scheduler(
+                inputs=inputs,
+                unsupported_skills=self.get_unsupported_skills(),
+            )
+            plans = init_res.assignments
+        else:
+            plans = []
+            for a in db_assignments:
+                job = self.db.query(Job).filter_by(id=a.job_id).first()
+                plans.append(
+                    AssignedJobPlan(
+                        job_id=a.job_id,
+                        technician_id=a.technician_id,
+                        scheduled_start=a.start_time,
+                        scheduled_end=a.end_time,
+                        travel_time_minutes=0.0,
+                        is_existing=a.is_existing,
+                        status=a.status,
+                        details={"job_title": job.title if job else ""},
+                    )
+                )
+
+        jobs_all = [JobResponse.model_validate(j) for j in self.db.query(Job).all()]
+        technicians_all = [TechnicianResponse.model_validate(t) for t in self.db.query(Technician).all()]
+
+        result = optimize_schedule_sla(
+            initial_assignments=plans,
+            technicians=technicians_all,
+            jobs=jobs_all,
+            as_of=as_of,
+            lateness_weight=lateness_weight,
+            at_risk_threshold_minutes=at_risk_threshold_minutes,
+            run_id=run_id or generate_run_id("RUN-OPT-SLA"),
+        )
+
+        if persist:
+            for p in result.assignments:
+                if p.is_existing:
+                    continue
+                db_a = self.db.query(Assignment).filter_by(job_id=p.job_id).first()
+                if not db_a:
+                    db_a = Assignment(
+                        id=f"ASN-{uuid.uuid4().hex[:8].upper()}",
+                        job_id=p.job_id,
+                        technician_id=p.technician_id,
+                        start_time=p.scheduled_start,
+                        end_time=p.scheduled_end,
+                        status="scheduled",
+                        is_existing=False,
+                    )
+                    self.db.add(db_a)
+                else:
+                    db_a.start_time = p.scheduled_start
+                    db_a.end_time = p.scheduled_end
+
+                job_rec = self.db.query(Job).filter_by(id=p.job_id).first()
+                if job_rec and not (job_rec.status in ["completed", "in_progress"]):
+                    job_rec.scheduled_start = p.scheduled_start
+                    job_rec.scheduled_end = p.scheduled_end
+
+            self.db.commit()
+            result.persisted = True
+
+        return result
+
 
 
 

@@ -51,6 +51,12 @@ from app.scheduling.schemas import (
     TravelOptimizationResult,
     TravelOptimizationRequest,
     TechnicianTravelSummary,
+    JobSLADetail,
+    FleetSLAMetrics,
+    SLAOptimizationResult,
+    SLAOptimizationRequest,
+    CompetingSLARequest,
+    CompetingSLAResolution,
 )
 
 from app.scheduling.service import SchedulingService
@@ -1249,6 +1255,154 @@ def get_travel_metrics_endpoint(
     """
     service = SchedulingService(db)
     return service.get_travel_metrics()
+
+
+# =========================================================================
+# PHASE 26 – SLA Optimisation & Performance Endpoints
+# =========================================================================
+
+@router.get(
+    "/schedule/sla-metrics",
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Get fleet-wide SLA timeliness performance, at-risk job counts, and penalty metrics",
+)
+@router.get(
+    "/scheduling/sla-metrics",
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_sla_metrics_endpoint(
+    lateness_weight: float = 2.0,
+    at_risk_threshold_minutes: int = 30,
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Returns complete fleet SLA timeliness analytics:
+    - On-time, at-risk, and breached job counts and percentages.
+    - Total lateness minutes and financial penalty assessments.
+    - Identification of already-breached but assignable jobs.
+    - Granular SLA status for every service job.
+    """
+    service = SchedulingService(db)
+    return service.get_sla_metrics(
+        lateness_weight=lateness_weight,
+        at_risk_threshold_minutes=at_risk_threshold_minutes,
+    )
+
+
+@router.get(
+    "/jobs/{job_id}/sla",
+    response_model=JobSLADetail,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Get SLA timeliness status, lateness metrics, and customer window alignment for a job",
+)
+@router.get(
+    "/scheduling/sla/job/{job_id}",
+    response_model=JobSLADetail,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_job_sla_detail_endpoint(
+    job_id: str,
+    lateness_weight: float = 2.0,
+    at_risk_threshold_minutes: int = 30,
+    db: Session = Depends(get_db),
+) -> JobSLADetail:
+    """
+    Retrieves granular SLA performance and customer window alignment for an individual job:
+    - Expected completion time vs soft SLA target.
+    - Status: ON_TIME, AT_RISK, or BREACHED.
+    - Protection of customer hard window boundaries.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.get_job_sla_detail(
+            job_id=job_id,
+            lateness_weight=lateness_weight,
+            at_risk_threshold_minutes=at_risk_threshold_minutes,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/schedule/sla/resolve",
+    response_model=CompetingSLAResolution,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Deterministically arbitrate between multiple competing SLA deadlines",
+)
+@router.post(
+    "/scheduling/sla/resolve",
+    response_model=CompetingSLAResolution,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def resolve_competing_sla_endpoint(
+    req: CompetingSLARequest,
+    db: Session = Depends(get_db),
+) -> CompetingSLAResolution:
+    """
+    Arbitrates between two competing jobs with approaching SLA targets:
+    - Earlier deadline prioritized first.
+    - Tighter remaining slack buffer prioritized.
+    - Preserves hard customer windows and full explainability.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.resolve_competing_sla_deadlines(req.job_id_a, req.job_id_b)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/schedule/optimize/sla",
+    response_model=SLAOptimizationResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Execute SLA-aware schedule optimization to reduce lateness and protect at-risk jobs",
+)
+@router.post(
+    "/scheduling/optimize/sla",
+    response_model=SLAOptimizationResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def optimize_sla_endpoint(
+    req: Optional[SLAOptimizationRequest] = None,
+    db: Session = Depends(get_db),
+) -> SLAOptimizationResult:
+    """
+    Optimizes schedule to improve SLA performance:
+    - Identifies at-risk jobs and advances dispatch start where idle buffer permits.
+    - Mitigates lateness minutes and saves SLA penalty costs.
+    - Strictly preserves zero hard constraint violations.
+    """
+    service = SchedulingService(db)
+    lateness_weight = req.lateness_weight if req else 2.0
+    at_risk_threshold = req.at_risk_threshold_minutes if req else 30
+    persist = req.persist if req else False
+    run_id = req.run_id if req else None
+
+    return service.optimize_sla(
+        lateness_weight=lateness_weight,
+        at_risk_threshold_minutes=at_risk_threshold,
+        persist=persist,
+        run_id=run_id,
+    )
+
 
 
 

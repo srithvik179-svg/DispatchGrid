@@ -62,6 +62,14 @@ from app.scheduling.schemas import (
     TravelOptimizationAction,
     TravelOptimizationResult,
     TravelOptimizationRequest,
+    JobSLADetail,
+    FleetSLAMetrics,
+    SLAOptimizationAction,
+    SLAOptimizationComparison,
+    SLAOptimizationResult,
+    SLAOptimizationRequest,
+    CompetingSLARequest,
+    CompetingSLAResolution,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -150,6 +158,12 @@ from app.scheduling.travel_opt import (
     calculate_fleet_travel_breakdown,
     optimize_technician_routes,
     optimize_schedule_travel,
+)
+from app.scheduling.sla_opt import (
+    calculate_job_sla_detail,
+    calculate_fleet_sla_metrics,
+    resolve_competing_sla_deadlines,
+    optimize_schedule_sla,
 )
 
 __all__ = [
@@ -278,4 +292,16 @@ __all__ = [
     "calculate_fleet_travel_breakdown",
     "optimize_technician_routes",
     "optimize_schedule_travel",
+    "JobSLADetail",
+    "FleetSLAMetrics",
+    "SLAOptimizationAction",
+    "SLAOptimizationComparison",
+    "SLAOptimizationResult",
+    "SLAOptimizationRequest",
+    "CompetingSLARequest",
+    "CompetingSLAResolution",
+    "calculate_job_sla_detail",
+    "calculate_fleet_sla_metrics",
+    "resolve_competing_sla_deadlines",
+    "optimize_schedule_sla",
 ]

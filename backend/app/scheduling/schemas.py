@@ -926,6 +926,128 @@ class TravelOptimizationRequest(BaseModel):
     max_iterations: int = Field(10, ge=1, le=50)
 
 
+# =========================================================================
+# PHASE 26 – SLA Optimisation Schemas
+# =========================================================================
+
+class JobSLADetail(BaseModel):
+    """Detailed SLA timeliness status, lateness metrics, and customer window alignment."""
+    job_id: str
+    title: str
+    priority: int
+    priority_label: str
+    technician_id: Optional[str] = None
+    technician_name: Optional[str] = None
+    scheduled_start: Optional[datetime] = None
+    expected_completion: Optional[datetime] = None
+    sla_deadline: Optional[datetime] = None
+    time_window_start: Optional[datetime] = None
+    time_window_end: Optional[datetime] = None
+    sla_status: str = Field(..., description="'ON_TIME', 'AT_RISK', 'BREACHED', or 'UNASSIGNED'")
+    is_already_breached_at_as_of: bool = Field(False, description="True if SLA deadline had already expired before simulation clock")
+    is_within_hard_window: bool = Field(True, description="True if completion finishes within customer hard window_end")
+    lateness_minutes: float = Field(0.0, description="Positive delay minutes past SLA target; 0.0 if on-time")
+    slack_buffer_minutes: float = Field(0.0, description="Available buffer before SLA breach (sla_deadline - expected_completion)")
+    lateness_penalty: float = Field(0.0, description="Financial/objective penalty cost based on configurable rate")
+    explanation: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FleetSLAMetrics(BaseModel):
+    """Fleet-wide aggregate SLA performance, timeliness percentages, and delay penalties."""
+    as_of: datetime
+    total_jobs_evaluated: int
+    assigned_jobs_count: int
+    on_time_count: int
+    on_time_percentage: float
+    at_risk_count: int
+    at_risk_percentage: float
+    breached_count: int
+    breached_percentage: float
+    already_breached_assigned_count: int
+    total_lateness_minutes: float
+    average_lateness_minutes: float
+    max_lateness_minutes: float
+    total_sla_penalty: float
+    lateness_penalty_weight: float = 2.0
+    at_risk_threshold_minutes: int = 30
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SLAOptimizationAction(BaseModel):
+    """Explainable scheduling action taken to protect an approaching deadline or reduce lateness."""
+    action_type: str = Field(..., description="'SCHEDULE_EARLIER', 'SLA_DEADLINE_ARBITRATION', or 'AT_RISK_PROTECTION'")
+    job_id: str
+    technician_id: str
+    previous_completion: Optional[datetime] = None
+    new_completion: Optional[datetime] = None
+    lateness_minutes_saved: float = 0.0
+    explanation: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SLAOptimizationComparison(BaseModel):
+    """Measured comparison of initial vs SLA-optimized schedule quality."""
+    initial_metrics: FleetSLAMetrics
+    optimized_metrics: FleetSLAMetrics
+    lateness_minutes_saved: float
+    penalty_saved: float
+    breaches_prevented: int
+    at_risk_rescued: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SLAOptimizationResult(BaseModel):
+    """Complete results of SLA optimization pass."""
+    run_id: str
+    as_of: datetime
+    is_feasible: bool = Field(..., description="Strictly True if zero hard constraints are violated")
+    hard_violations_count: int = 0
+    hard_violations: List[HardConstraintViolation] = Field(default_factory=list)
+    comparison: SLAOptimizationComparison
+    job_sla_details: List[JobSLADetail] = Field(default_factory=list)
+    optimizations_applied: List[SLAOptimizationAction] = Field(default_factory=list)
+    assignments: List[AssignedJobPlan] = Field(default_factory=list)
+    persisted: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SLAOptimizationRequest(BaseModel):
+    """Request payload for SLA schedule optimization."""
+    run_id: Optional[str] = None
+    lateness_weight: float = Field(2.0, ge=0.1, le=100.0)
+    at_risk_threshold_minutes: int = Field(30, ge=5, le=240)
+    persist: bool = Field(False, description="Persist improved schedule to database")
+
+
+class CompetingSLARequest(BaseModel):
+    """Request payload to arbitrate between multiple competing SLA deadlines."""
+    job_id_a: str
+    job_id_b: str
+
+
+class CompetingSLAResolution(BaseModel):
+    """Deterministic resolution and explanation between two competing SLA target deadlines."""
+    job_id_a: str
+    job_id_b: str
+    winner_job_id: str
+    loser_job_id: str
+    sla_a: datetime
+    sla_b: datetime
+    slack_a_minutes: float
+    slack_b_minutes: float
+    deciding_factor: str = Field(..., description="'SLA_DEADLINE_IMMINENCE', 'SLACK_BUFFER_TIGHTNESS', 'PRIORITY_LEVEL', or 'DETERMINISTIC_ID'")
+    explanation: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+
 
 
 
