@@ -77,6 +77,27 @@ DispatchGrid/
 ### Prerequisites
 - Python 3.9+ installed
 - Node.js (v18+ or v20+) and npm installed
+- PostgreSQL 14+ running locally or in Docker
+
+### Database Setup
+1. Create the PostgreSQL database:
+   ```bash
+   createdb dispatchgrid
+   ```
+2. Configure credentials in `backend/.env` (or pass environment variables):
+   ```bash
+   POSTGRES_SERVER=localhost
+   POSTGRES_PORT=5432
+   POSTGRES_USER=postgres
+   POSTGRES_PASSWORD=postgres
+   POSTGRES_DB=dispatchgrid
+   ```
+3. Run Alembic database migrations:
+   ```bash
+   cd backend
+   source .venv/bin/activate
+   alembic upgrade head
+   ```
 
 ### Backend Setup
 1. Navigate to the `backend` directory:
@@ -96,6 +117,10 @@ DispatchGrid/
 4. Copy the environment configuration:
    ```bash
    cp .env.example .env
+   ```
+5. Apply database migrations:
+   ```bash
+   alembic upgrade head
    ```
 
 ### Frontend Setup
@@ -159,3 +184,5 @@ npm run build
 ## 6. Development Status
 
 - **Phase 01 – Project Initialisation**: Completed. Clean frontend and backend architecture established, live health endpoint verified, unit and integration tests passing, zero secrets committed.
+- **Phase 02 – Basic Application Interface**: Completed. Collapsible enterprise application shell, header, simulation clock badge, active routing, and 9 module pages implemented.
+- **Phase 03 – Database Integration**: Completed. PostgreSQL connectivity, connection pooling, reusable SQLAlchemy session management, Alembic migrations (`system_metadata`), database health monitoring, and credential masking verified.
