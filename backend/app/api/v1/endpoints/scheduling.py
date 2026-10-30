@@ -45,7 +45,8 @@ from app.scheduling.time_windows import (
     validate_job_instance_time_window,
     calculate_feasible_service_window,
 )
-from app.scheduling.conflicts import detect_scheduling_conflicts
+from app.schemas.assignment import AssignmentSummary, AssignmentCreateRequest
+from app.scheduling.conflicts import detect_scheduling_conflicts, persist_assignment_with_conflict_check
 
 
 
@@ -735,5 +736,50 @@ def get_technician_job_conflict(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
         )
+
+
+@router.post(
+    "/scheduling/assignments",
+    response_model=AssignmentSummary,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Scheduling Assignments"],
+    summary="Create a new assignment, strictly rejecting conflicts before persistence",
+)
+def create_scheduling_assignment(
+    req: AssignmentCreateRequest,
+    db: Session = Depends(get_db),
+) -> AssignmentSummary:
+    """
+    Creates an assignment after verifying that no technician receives overlapping assignments,
+    travel time buffer is respected, and active/completed jobs are protected.
+    Invalid assignments are rejected before persistence.
+    """
+    try:
+        assign = persist_assignment_with_conflict_check(
+            db=db,
+            job_id=req.job_id,
+            technician_id=req.technician_id,
+            start_time=req.start_time,
+            end_time=req.end_time,
+        )
+        return AssignmentSummary(
+            id=assign.id,
+            job_id=assign.job_id,
+            technician_id=assign.technician_id,
+            start_time=assign.start_time,
+            end_time=assign.end_time,
+            status=assign.status,
+            is_existing=assign.is_existing,
+            job_title=assign.job.title if assign.job else None,
+            technician_name=assign.technician.name if assign.technician else None,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+
 
 

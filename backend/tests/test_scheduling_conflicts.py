@@ -319,3 +319,41 @@ def test_api_technician_job_conflict_get_endpoint(test_client):
     data = resp.json()
     assert data["technician_id"] == "T05"
     assert data["job_id"] == "JOB-001"
+
+
+def test_invalid_assignment_rejected_before_persistence(db_session, test_client):
+    """
+    CRITICAL ACCEPTANCE CRITERIA:
+    Invalid assignments are strictly rejected BEFORE persistence.
+    Attempting to create an assignment that conflicts with an in-progress job or creates
+    a double-booking must raise ValueError / HTTP 400 and persist nothing to the database.
+    """
+    from app.models.assignment import Assignment
+    from app.scheduling.conflicts import persist_assignment_with_conflict_check
+
+    # T05 is busy with in-progress JOB-105 until 11:30
+    initial_count = db_session.query(Assignment).count()
+
+    # 1. Direct Python function check: Must raise ValueError
+    with pytest.raises(ValueError) as exc_info:
+        persist_assignment_with_conflict_check(
+            db=db_session,
+            job_id="JOB-001",
+            technician_id="T05",
+            start_time="2026-11-02T10:00:00+05:30",
+            enforce_simulation_clock=False,
+        )
+    assert "Invalid assignment rejected before persistence" in str(exc_info.value)
+    assert db_session.query(Assignment).count() == initial_count  # Nothing persisted!
+
+    # 2. API Endpoint check: Must return HTTP 400 Bad Request
+    payload = {
+        "job_id": "JOB-001",
+        "technician_id": "T05",
+        "start_time": "2026-11-02T10:00:00+05:30",
+    }
+    resp = test_client.post("/api/v1/scheduling/assignments", json=payload)
+    assert resp.status_code == 400
+    assert "Invalid assignment rejected before persistence" in resp.json()["detail"]
+    assert db_session.query(Assignment).count() == initial_count  # Still nothing persisted!
+

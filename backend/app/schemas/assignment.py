@@ -16,3 +16,11 @@ class AssignmentSummary(BaseModel):
     technician_name: Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class AssignmentCreateRequest(BaseModel):
+    job_id: str
+    technician_id: str
+    start_time: datetime
+    end_time: Optional[datetime] = None
+

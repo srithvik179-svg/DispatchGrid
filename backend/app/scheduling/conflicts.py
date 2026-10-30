@@ -440,3 +440,89 @@ def detect_scheduling_conflicts(
         overtime_penalty=ot_penalty,
         summary=summary,
     )
+
+
+def persist_assignment_with_conflict_check(
+    db: Any,
+    job_id: str,
+    technician_id: str,
+    start_time: Union[datetime, str],
+    end_time: Optional[Union[datetime, str]] = None,
+    enforce_simulation_clock: bool = True,
+) -> Assignment:
+    """
+    Enforces that invalid or conflicting assignments are strictly rejected BEFORE persistence.
+    Validates technician qualifications, direct overlaps, travel-time buffers, and protected jobs.
+    """
+    p_start = parse_datetime_safe(start_time)
+    if not p_start:
+        raise ValueError("Invalid start_time provided.")
+
+    job = db.query(Job).filter_by(id=job_id).first()
+    if not job:
+        raise ValueError(f"Job with ID '{job_id}' not found.")
+
+    if job.status in ("completed", "cancelled"):
+        raise ValueError(f"Cannot assign job in terminal status '{job.status}'.")
+
+    technician = db.query(Technician).filter_by(id=technician_id).first()
+    if not technician:
+        raise ValueError(f"Technician with ID '{technician_id}' not found.")
+
+    p_end = parse_datetime_safe(end_time)
+    if not p_end:
+        p_end = p_start + timedelta(minutes=job.duration_minutes)
+
+    from app.scheduling.loader import load_existing_assignments, get_simulation_clock
+    existing_assignments = load_existing_assignments(db)
+    ref_clock = get_simulation_clock(db)
+
+    conflict_res = detect_scheduling_conflicts(
+        technician_id=technician_id,
+        proposed_start=p_start,
+        proposed_end=p_end,
+        job_id=job.id,
+        job_lat=job.lat,
+        job_lng=job.lng,
+        existing_assignments=existing_assignments,
+        technician=technician,
+        as_of=ref_clock,
+        include_travel=True,
+        enforce_simulation_clock=enforce_simulation_clock,
+    )
+
+    if conflict_res.has_conflict:
+        reasons = "; ".join(c.message for c in conflict_res.conflicts)
+        raise ValueError(f"Invalid assignment rejected before persistence: {reasons}")
+
+    assignment = Assignment(
+        job_id=job.id,
+        technician_id=technician.id,
+        start_time=p_start,
+        end_time=p_end,
+        status="scheduled",
+        is_existing=False,
+    )
+    db.add(assignment)
+
+    old_status = job.status
+    job.assigned_technician_id = technician.id
+    job.scheduled_start = p_start
+    job.scheduled_end = p_end
+    job.status = "assigned"
+
+    from app.models.job_state_history import JobStateHistory
+    history = JobStateHistory(
+        job_id=job.id,
+        from_status=old_status,
+        to_status="assigned",
+        reason=f"Assigned to {technician.id} ({technician.name})",
+        changed_at=datetime.now(timezone.utc),
+    )
+    db.add(history)
+
+    db.commit()
+    db.refresh(assignment)
+    db.refresh(job)
+    return assignment
+

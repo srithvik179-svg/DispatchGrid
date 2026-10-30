@@ -81,6 +81,7 @@ from app.scheduling.time_windows import (
 from app.scheduling.conflicts import (
     detect_scheduling_conflicts,
     extract_assignment_info,
+    persist_assignment_with_conflict_check,
 )
 
 __all__ = [
@@ -150,4 +151,5 @@ __all__ = [
     "calculate_feasible_service_window",
     "detect_scheduling_conflicts",
     "extract_assignment_info",
+    "persist_assignment_with_conflict_check",
 ]
