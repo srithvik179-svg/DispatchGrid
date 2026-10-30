@@ -35,6 +35,8 @@ from app.scheduling.schemas import (
     JobAssignmentResponse,
     TechnicianItineraryItem,
     TechnicianScheduleResponse,
+    ObjectiveWeightsConfig,
+    ScheduleScoreResult,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -1060,6 +1062,39 @@ class SchedulingService:
             "reverted_jobs": len(reverted_jobs),
             "preserved_existing_assignments": len(existing_records),
         }
+
+    def get_schedule_score(
+        self,
+        weights: Optional[ObjectiveWeightsConfig] = None,
+        as_of: Optional[datetime] = None,
+        respect_existing_assignments: bool = True,
+    ) -> ScheduleScoreResult:
+        """
+        Evaluates the objective score and feasibility of the current schedule in the database.
+        """
+        from app.scheduling.scoring import evaluate_schedule_score
+
+        as_of_dt = as_of or self.get_clock()
+        inputs = self.load_inputs(
+            config=SchedulingRunConfig(
+                as_of=as_of_dt,
+                respect_existing_assignments=respect_existing_assignments,
+            )
+        )
+
+        db_assignments = self.db.query(Assignment).all()
+        jobs = self.db.query(Job).all()
+        technicians = self.db.query(Technician).all()
+
+        return evaluate_schedule_score(
+            jobs=jobs,
+            technicians=technicians,
+            assignments=db_assignments,
+            baseline_assignments=inputs.existing_assignments,
+            weights=weights,
+            as_of=as_of_dt,
+        )
+
 
 
 

@@ -632,6 +632,164 @@ class TechnicianScheduleResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+# =========================================================================
+# PHASE 23 – Objective Function & Scoring Engine Schemas
+# =========================================================================
+
+class ObjectiveWeightsConfig(BaseModel):
+    """Configurable weights for the multi-criteria schedule objective function."""
+    w_sla_lateness: float = Field(default=2.0, ge=0.0, description="Cost per minute of service completion past soft SLA deadline")
+    w_travel_time: float = Field(default=1.0, ge=0.0, description="Cost per minute of technician transit travel time")
+    w_overtime: float = Field(default=3.0, ge=0.0, description="Cost per minute of permitted overtime worked outside standard shifts")
+    w_churn: float = Field(default=250.0, ge=0.0, description="Penalty per modified or reassigned pre-existing baseline assignment")
+    w_unassigned_p1: float = Field(default=1000.0, ge=0.0, description="Penalty for leaving an Urgent (Priority 1) job unassigned")
+    w_unassigned_p2: float = Field(default=500.0, ge=0.0, description="Penalty for leaving a High (Priority 2) job unassigned")
+    w_unassigned_p3: float = Field(default=200.0, ge=0.0, description="Penalty for leaving a Medium (Priority 3) job unassigned")
+    w_unassigned_p4: float = Field(default=100.0, ge=0.0, description="Penalty for leaving a Low (Priority 4) job unassigned")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class JobLatenessDetail(BaseModel):
+    """Detailed lateness record for a specific job."""
+    job_id: str
+    completion_time: datetime
+    sla_deadline: datetime
+    lateness_minutes: int
+    penalty: float
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SLALatenessBreakdown(BaseModel):
+    """Component score for SLA target lateness."""
+    total_delayed_jobs: int = 0
+    total_lateness_minutes: int = 0
+    total_penalty: float = 0.0
+    weight: float = 2.0
+    delayed_jobs: List[JobLatenessDetail] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TechnicianTravelDetail(BaseModel):
+    """Travel breakdown for an individual technician route."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    legs_count: int = 0
+    total_distance_km: float = 0.0
+    total_travel_minutes: float = 0.0
+    penalty: float = 0.0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TravelTimeBreakdown(BaseModel):
+    """Component score for technician transit times."""
+    total_travel_minutes: float = 0.0
+    total_distance_km: float = 0.0
+    total_penalty: float = 0.0
+    weight: float = 1.0
+    technician_travel: List[TechnicianTravelDetail] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UnassignedPriorityBreakdown(BaseModel):
+    """Component score for unassigned jobs stratified by priority."""
+    unassigned_p1_count: int = 0
+    unassigned_p2_count: int = 0
+    unassigned_p3_count: int = 0
+    unassigned_p4_count: int = 0
+    total_unassigned_count: int = 0
+    p1_penalty: float = 0.0
+    p2_penalty: float = 0.0
+    p3_penalty: float = 0.0
+    p4_penalty: float = 0.0
+    total_penalty: float = 0.0
+    unassigned_job_ids: List[str] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TechnicianOvertimeDetail(BaseModel):
+    """Overtime details for a technician."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    overtime_minutes: int = 0
+    penalty: float = 0.0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class OvertimeBreakdown(BaseModel):
+    """Component score for authorized overtime work."""
+    total_overtime_minutes: int = 0
+    technicians_with_overtime_count: int = 0
+    total_penalty: float = 0.0
+    weight: float = 3.0
+    technician_overtime: List[TechnicianOvertimeDetail] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssignmentChurnDetail(BaseModel):
+    """Detailed record of a disrupted or modified baseline assignment."""
+    job_id: str
+    baseline_technician_id: str
+    new_technician_id: str
+    change_type: str = "reassigned"
+    penalty: float = 0.0
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AssignmentChurnBreakdown(BaseModel):
+    """Component score for unnecessary assignment changes / schedule churn."""
+    total_disrupted_jobs: int = 0
+    total_penalty: float = 0.0
+    weight: float = 250.0
+    churn_details: List[AssignmentChurnDetail] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class HardConstraintViolation(BaseModel):
+    """Specific hard operational constraint violation that invalidates schedule feasibility."""
+    violation_type: str = Field(..., description="'DOUBLE_BOOKING', 'SKILL_MISMATCH', 'EQUIPMENT_MISMATCH', 'ZONE_VIOLATION', 'TIME_WINDOW_BREACH', 'UNAUTHORIZED_OVERTIME', 'BUFFER_VIOLATION'")
+    job_id: Optional[str] = None
+    technician_id: Optional[str] = None
+    description: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScheduleScoreResult(BaseModel):
+    """Comprehensive, traceable evaluation of a schedule's objective cost and feasibility."""
+    total_score: float = Field(..., description="Aggregate objective penalty cost (lower is superior)")
+    is_feasible: bool = Field(..., description="Strictly True only if zero hard constraint violations exist")
+    hard_violations_count: int = Field(0, description="Count of hard constraint violations detected")
+    hard_violations: List[HardConstraintViolation] = Field(default_factory=list, description="List of hard constraint breaches")
+    sla_component: SLALatenessBreakdown
+    travel_component: TravelTimeBreakdown
+    unassigned_component: UnassignedPriorityBreakdown
+    overtime_component: OvertimeBreakdown
+    churn_component: AssignmentChurnBreakdown
+    weights_used: ObjectiveWeightsConfig
+    units: Dict[str, str] = Field(default_factory=dict, description="Units and scales for each metric")
+    assumptions: List[str] = Field(default_factory=list, description="Mathematical model assumptions")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ScoreEvaluationRequest(BaseModel):
+    """Request payload for evaluating schedule objective score with custom weights."""
+    weights: Optional[ObjectiveWeightsConfig] = None
+    as_of: Optional[datetime] = None
+    respect_existing_assignments: bool = True
+
+
+
 
 
 

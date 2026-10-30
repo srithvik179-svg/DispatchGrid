@@ -42,6 +42,9 @@ from app.scheduling.schemas import (
     ScheduleCurrentResponse,
     JobAssignmentResponse,
     TechnicianScheduleResponse,
+    ObjectiveWeightsConfig,
+    ScheduleScoreResult,
+    ScoreEvaluationRequest,
 )
 
 from app.scheduling.service import SchedulingService
@@ -1015,6 +1018,70 @@ def reset_schedule_endpoint(
     """
     service = SchedulingService(db)
     return service.reset_schedule_to_baseline()
+
+
+# =========================================================================
+# PHASE 23 – Objective Function & Scoring Engine Endpoints
+# =========================================================================
+
+@router.get(
+    "/schedule/score",
+    response_model=ScheduleScoreResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Evaluate objective score, cost components, and hard constraint feasibility for current schedule",
+)
+@router.get(
+    "/scheduling/score",
+    response_model=ScheduleScoreResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_schedule_score_endpoint(
+    db: Session = Depends(get_db),
+) -> ScheduleScoreResult:
+    """
+    Evaluates the multi-criteria objective score and hard feasibility for the active schedule.
+    Provides separable component costs for SLA lateness, transit travel, unassigned priority,
+    overtime, and assignment churn.
+    """
+    service = SchedulingService(db)
+    return service.get_schedule_score()
+
+
+@router.post(
+    "/schedule/score",
+    response_model=ScheduleScoreResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Evaluate schedule objective score with custom configurable weights",
+)
+@router.post(
+    "/scheduling/score",
+    response_model=ScheduleScoreResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def evaluate_schedule_score_endpoint(
+    req: Optional[ScoreEvaluationRequest] = None,
+    db: Session = Depends(get_db),
+) -> ScheduleScoreResult:
+    """
+    Evaluates the multi-criteria objective score using caller-specified weights and simulation parameters.
+    Ensures hard operational constraints are verified independently of objective cost.
+    """
+    service = SchedulingService(db)
+    weights = req.weights if req else None
+    as_of = req.as_of if req else None
+    respect_existing = req.respect_existing_assignments if req else True
+    return service.get_schedule_score(
+        weights=weights,
+        as_of=as_of,
+        respect_existing_assignments=respect_existing,
+    )
+
 
 
 
