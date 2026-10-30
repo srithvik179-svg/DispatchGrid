@@ -10,6 +10,17 @@ PRIORITY_MAP = {
     4: "low",
 }
 
+VALID_STATUSES = {"pending", "assigned", "in_progress", "completed", "cancelled", "unassigned"}
+
+VALID_TRANSITIONS = {
+    "pending": {"assigned", "unassigned", "cancelled"},
+    "unassigned": {"assigned", "pending", "cancelled"},
+    "assigned": {"in_progress", "pending", "unassigned", "cancelled"},
+    "in_progress": {"completed", "cancelled"},
+    "completed": set(),  # Terminal state: cannot be modified or cancelled!
+    "cancelled": set(),  # Terminal state: cannot be transitioned!
+}
+
 
 class LocationInput(BaseModel):
     lat: float = Field(..., ge=-90.0, le=90.0, description="Latitude between -90 and 90")
@@ -38,7 +49,6 @@ class JobCreate(BaseModel):
 
     @model_validator(mode="after")
     def validate_job_fields(self) -> "JobCreate":
-        # 1. Clean strings
         self.customer_name = self.customer_name.strip()
         self.title = self.title.strip()
         if not self.customer_name:
@@ -46,7 +56,6 @@ class JobCreate(BaseModel):
         if not self.title:
             raise ValueError("title cannot be empty or whitespace only")
 
-        # 2. Location consolidation
         if self.location:
             self.lat = self.location.lat
             self.lng = self.location.lng
@@ -58,7 +67,6 @@ class JobCreate(BaseModel):
         if not self.address:
             self.address = f"Coordinates ({self.lat:.4f}, {self.lng:.4f})"
 
-        # 3. Time window validations
         if self.time_window_start >= self.time_window_end:
             raise ValueError("time_window_start must be strictly earlier than time_window_end")
 
@@ -68,18 +76,49 @@ class JobCreate(BaseModel):
                 f"Time window ({window_duration_minutes:.0f} mins) is shorter than job duration ({self.duration_minutes} mins)"
             )
 
-        # 4. Default SLA deadline if not provided
         if not self.sla_deadline:
             self.sla_deadline = self.time_window_end
         elif self.sla_deadline < self.time_window_start:
             raise ValueError("sla_deadline cannot be earlier than time_window_start")
 
-        # 5. Clean skill names
         self.required_skills = [s.strip().lower() for s in self.required_skills if s.strip()]
         if not self.required_skills:
             raise ValueError("At least one required skill must be specified")
 
         return self
+
+
+class JobUpdate(BaseModel):
+    title: Optional[str] = Field(None, min_length=1, max_length=200)
+    customer_name: Optional[str] = Field(None, min_length=1, max_length=200)
+    zone_id: Optional[str] = Field(None, max_length=20)
+    lat: Optional[float] = Field(None, ge=-90.0, le=90.0)
+    lng: Optional[float] = Field(None, ge=-180.0, le=180.0)
+    address: Optional[str] = Field(None, max_length=500)
+    priority: Optional[int] = Field(None, ge=1, le=4)
+    duration_minutes: Optional[int] = Field(None, gt=0)
+    required_skills: Optional[List[str]] = None
+    required_equipment: Optional[List[str]] = None
+    time_window_start: Optional[datetime] = None
+    time_window_end: Optional[datetime] = None
+    sla_deadline: Optional[datetime] = None
+    status: Optional[str] = None
+    reason: Optional[str] = Field(None, description="Operational reason for update")
+
+
+class JobCancelRequest(BaseModel):
+    reason: Optional[str] = Field("Cancelled by dispatcher / operator", description="Reason for cancellation")
+
+
+class JobStateHistoryResponse(BaseModel):
+    id: int
+    job_id: str
+    from_status: Optional[str] = None
+    to_status: str
+    reason: Optional[str] = None
+    changed_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class JobResponse(BaseModel):

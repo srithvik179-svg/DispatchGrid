@@ -11,6 +11,11 @@ import {
   Clock,
   Wrench,
   CheckCircle2,
+  Edit2,
+  Trash2,
+  History,
+  AlertTriangle,
+  Lock,
 } from 'lucide-react';
 
 interface Job {
@@ -36,6 +41,15 @@ interface Job {
   scheduled_end: string | null;
   created_at: string;
   tags: string[];
+}
+
+interface StateHistoryItem {
+  id: number;
+  job_id: string;
+  from_status: string | null;
+  to_status: string;
+  reason: string | null;
+  changed_at: string;
 }
 
 const AVAILABLE_SKILLS = [
@@ -73,16 +87,29 @@ export const JobsPage: React.FC = () => {
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [zoneFilter, setZoneFilter] = useState<string>('all');
 
-  // Detail Modal State
+  // Modals State
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
+  const [historyList, setHistoryList] = useState<StateHistoryItem[]>([]);
+  const [loadingHistory, setLoadingHistory] = useState<boolean>(false);
 
-  // Create Job Modal State
+  // Create Modal
   const [isCreateOpen, setIsCreateOpen] = useState<boolean>(false);
   const [createSubmitting, setCreateSubmitting] = useState<boolean>(false);
   const [createError, setCreateError] = useState<string | null>(null);
   const [createSuccess, setCreateSuccess] = useState<string | null>(null);
 
-  // Form State
+  // Edit Modal
+  const [editingJob, setEditingJob] = useState<Job | null>(null);
+  const [editSubmitting, setEditSubmitting] = useState<boolean>(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  // Cancel Confirmation Modal
+  const [cancellingJob, setCancellingJob] = useState<Job | null>(null);
+  const [cancelReason, setCancelReason] = useState<string>('Customer request');
+  const [cancelSubmitting, setCancelSubmitting] = useState<boolean>(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  // Forms State
   const [formData, setFormData] = useState({
     title: '',
     customer_name: '',
@@ -98,6 +125,17 @@ export const JobsPage: React.FC = () => {
     time_window_end: '2026-11-02T14:00',
     sla_deadline: '2026-11-02T14:00',
     idempotency_key: '',
+  });
+
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    customer_name: '',
+    priority: 3,
+    zone_id: 'Z1',
+    duration_minutes: 60,
+    required_skills: ['electrical'],
+    required_equipment: ['multimeter'],
+    reason: '',
   });
 
   const fetchJobs = useCallback(async (isRefresh = false) => {
@@ -123,7 +161,133 @@ export const JobsPage: React.FC = () => {
     fetchJobs();
   }, [fetchJobs]);
 
-  // Client-side search and filtering
+  const loadJobHistory = async (jobId: string) => {
+    setLoadingHistory(true);
+    try {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/api/v1/jobs/${jobId}/history`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistoryList(data);
+      }
+    } catch {
+      setHistoryList([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
+
+  const handleSelectJob = (job: Job) => {
+    setSelectedJob(job);
+    loadJobHistory(job.id);
+  };
+
+  const handleOpenEdit = (job: Job, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (job.status === 'completed' || job.status === 'cancelled') return;
+    setEditingJob(job);
+    setEditError(null);
+    setEditFormData({
+      title: job.title,
+      customer_name: job.customer_name,
+      priority: job.priority,
+      zone_id: job.zone_id || 'Z1',
+      duration_minutes: job.duration_minutes,
+      required_skills: job.required_skills || [],
+      required_equipment: job.required_equipment || [],
+      reason: 'Dispatcher manual revision',
+    });
+  };
+
+  const handleOpenCancel = (job: Job, e?: React.MouseEvent) => {
+    if (e) e.stopPropagation();
+    if (job.status === 'completed' || job.status === 'cancelled') return;
+    setCancellingJob(job);
+    setCancelError(null);
+    setCancelReason('Customer requested cancellation');
+  };
+
+  const handleCancelSubmit = async () => {
+    if (!cancellingJob) return;
+    setCancelSubmitting(true);
+    setCancelError(null);
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const res = await fetch(`${apiUrl}/api/v1/jobs/${cancellingJob.id}/cancel`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: cancelReason }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || `HTTP ${res.status}`);
+      }
+
+      await fetchJobs(true);
+      if (selectedJob && selectedJob.id === cancellingJob.id) {
+        setSelectedJob(data);
+        loadJobHistory(data.id);
+      }
+      setCancellingJob(null);
+    } catch (err: unknown) {
+      setCancelError(err instanceof Error ? err.message : 'Cancellation failed');
+    } finally {
+      setCancelSubmitting(false);
+    }
+  };
+
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingJob) return;
+    setEditSubmitting(true);
+    setEditError(null);
+
+    if (!editFormData.title.trim() || !editFormData.customer_name.trim()) {
+      setEditError('Title and Customer Name cannot be empty');
+      setEditSubmitting(false);
+      return;
+    }
+
+    try {
+      const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+      const payload = {
+        title: editFormData.title.trim(),
+        customer_name: editFormData.customer_name.trim(),
+        priority: Number(editFormData.priority),
+        zone_id: editFormData.zone_id,
+        duration_minutes: Number(editFormData.duration_minutes),
+        required_skills: editFormData.required_skills,
+        required_equipment: editFormData.required_equipment,
+        reason: editFormData.reason.trim() || 'Dispatcher manual update',
+      };
+
+      const res = await clientPatch(`${apiUrl}/api/v1/jobs/${editingJob.id}`, payload);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.detail || `HTTP ${res.status}`);
+      }
+
+      await fetchJobs(true);
+      if (selectedJob && selectedJob.id === editingJob.id) {
+        setSelectedJob(data);
+        loadJobHistory(data.id);
+      }
+      setEditingJob(null);
+    } catch (err: unknown) {
+      setEditError(err instanceof Error ? err.message : 'Update failed');
+    } finally {
+      setEditSubmitting(false);
+    }
+  };
+
+  const clientPatch = (url: string, body: any) =>
+    fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       const matchesSearch =
@@ -147,7 +311,6 @@ export const JobsPage: React.FC = () => {
     setCreateError(null);
     setCreateSuccess(null);
 
-    // Client-side validation
     if (!formData.title.trim() || !formData.customer_name.trim()) {
       setCreateError('Title and Customer Name are required.');
       setCreateSubmitting(false);
@@ -186,7 +349,6 @@ export const JobsPage: React.FC = () => {
 
     try {
       const apiUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-      // ISO strings with timezone
       const payload = {
         title: formData.title.trim(),
         customer_name: formData.customer_name.trim(),
@@ -220,9 +382,7 @@ export const JobsPage: React.FC = () => {
       }
 
       setCreateSuccess(`Job ${resJson.id} successfully created!`);
-      // Refresh list
       await fetchJobs(true);
-      // Reset form
       setFormData({
         title: '',
         customer_name: '',
@@ -270,7 +430,7 @@ export const JobsPage: React.FC = () => {
       case 'in_progress':
         return 'bg-blue-950/70 text-blue-300 border-blue-800';
       case 'cancelled':
-        return 'bg-rose-950/70 text-rose-300 border-rose-800';
+        return 'bg-rose-950/70 text-rose-300 border-rose-800 line-through';
       case 'pending':
       default:
         return 'bg-amber-950/60 text-amber-300 border-amber-800/80';
@@ -297,7 +457,7 @@ export const JobsPage: React.FC = () => {
       {/* Page Header */}
       <PageHeader
         title="Jobs Management"
-        description="Catalog, inspection, and creation of customer field service requests."
+        description="Catalog, inspection, and creation of customer field service requests, with full lifecycle management."
         badge={`${jobs.length} Active Records`}
         action={
           <div className="flex items-center space-x-3">
@@ -341,7 +501,6 @@ export const JobsPage: React.FC = () => {
 
       {/* Search and Filters Bar */}
       <div className="p-4 rounded-xl bg-slate-900/70 border border-slate-800 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4">
-        {/* Search Input */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -361,9 +520,7 @@ export const JobsPage: React.FC = () => {
           )}
         </div>
 
-        {/* Filter Dropdowns */}
         <div className="flex flex-wrap items-center gap-2">
-          {/* Status Filter */}
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
@@ -372,12 +529,12 @@ export const JobsPage: React.FC = () => {
           >
             <option value="all">All Statuses</option>
             <option value="pending">Pending</option>
+            <option value="assigned">Assigned</option>
             <option value="in_progress">In Progress</option>
             <option value="completed">Completed</option>
             <option value="cancelled">Cancelled</option>
           </select>
 
-          {/* Priority Filter */}
           <select
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
@@ -391,7 +548,6 @@ export const JobsPage: React.FC = () => {
             <option value="4">P4 - Low</option>
           </select>
 
-          {/* Zone Filter */}
           <select
             value={zoneFilter}
             onChange={(e) => setZoneFilter(e.target.value)}
@@ -454,65 +610,99 @@ export const JobsPage: React.FC = () => {
                     <th className="py-3 px-4">Duration</th>
                     <th className="py-3 px-4">Time Window</th>
                     <th className="py-3 px-4">Status</th>
-                    <th className="py-3 px-4">Actions</th>
+                    <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60 font-normal">
-                  {filteredJobs.map((job) => (
-                    <tr
-                      key={job.id}
-                      className="hover:bg-slate-800/40 transition cursor-pointer"
-                      onClick={() => setSelectedJob(job)}
-                    >
-                      <td className="py-3 px-4 font-mono font-medium text-indigo-300">
-                        {job.id}
-                      </td>
-                      <td className="py-3 px-4">
-                        <div className="font-semibold text-white">{job.title}</div>
-                        <div className="text-[11px] text-slate-400">{job.customer_name}</div>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono">
-                          {job.zone_id || 'None'}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wider ${getPriorityBadgeClass(
-                            job.priority
-                          )}`}
-                        >
-                          P{job.priority} &bull; {job.priority_label}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-slate-400 font-mono">
-                        {job.duration_minutes}m
-                      </td>
-                      <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">
-                        {formatDateTime(job.time_window_start)} &ndash; {formatDateTime(job.time_window_end)}
-                      </td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wider ${getStatusBadgeClass(
-                            job.status
-                          )}`}
-                        >
-                          {job.status}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedJob(job);
-                          }}
-                          className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-indigo-300 hover:text-white border border-slate-700 transition"
-                        >
-                          View Details
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredJobs.map((job) => {
+                    const isTerminal = job.status === 'completed' || job.status === 'cancelled';
+                    return (
+                      <tr
+                        key={job.id}
+                        className="hover:bg-slate-800/40 transition cursor-pointer"
+                        onClick={() => handleSelectJob(job)}
+                      >
+                        <td className="py-3 px-4 font-mono font-medium text-indigo-300">
+                          {job.id}
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="font-semibold text-white">{job.title}</div>
+                          <div className="text-[11px] text-slate-400">{job.customer_name}</div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 font-mono">
+                            {job.zone_id || 'None'}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wider ${getPriorityBadgeClass(
+                              job.priority
+                            )}`}
+                          >
+                            P{job.priority} &bull; {job.priority_label}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-slate-400 font-mono">
+                          {job.duration_minutes}m
+                        </td>
+                        <td className="py-3 px-4 text-slate-400 font-mono text-[11px]">
+                          {formatDateTime(job.time_window_start)} &ndash; {formatDateTime(job.time_window_end)}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded border text-[10px] font-semibold uppercase tracking-wider ${getStatusBadgeClass(
+                              job.status
+                            )}`}
+                          >
+                            {job.status}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <div
+                            className="inline-flex items-center space-x-1"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              onClick={() => handleSelectJob(job)}
+                              className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[11px] text-slate-200 border border-slate-700 transition"
+                              aria-label={`View Details for ${job.id}`}
+                            >
+                              Details
+                            </button>
+
+                            {!isTerminal ? (
+                              <>
+                                <button
+                                  onClick={(e) => handleOpenEdit(job, e)}
+                                  className="p-1.5 rounded bg-slate-800 hover:bg-indigo-900/60 text-slate-400 hover:text-indigo-300 border border-slate-700 transition"
+                                  title="Edit Job"
+                                  aria-label={`Edit ${job.id}`}
+                                >
+                                  <Edit2 className="w-3.5 h-3.5" />
+                                </button>
+                                <button
+                                  onClick={(e) => handleOpenCancel(job, e)}
+                                  className="p-1.5 rounded bg-slate-800 hover:bg-rose-900/60 text-slate-400 hover:text-rose-300 border border-slate-700 transition"
+                                  title="Cancel Job"
+                                  aria-label={`Cancel ${job.id}`}
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </>
+                            ) : (
+                              <span
+                                className="p-1.5 text-slate-600 cursor-not-allowed"
+                                title="Completed/Cancelled jobs are protected"
+                              >
+                                <Lock className="w-3.5 h-3.5" />
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -520,7 +710,7 @@ export const JobsPage: React.FC = () => {
         </div>
       )}
 
-      {/* JOB DETAIL MODAL */}
+      {/* JOB DETAIL & HISTORY MODAL */}
       {selectedJob && (
         <div
           data-testid="job-detail-modal"
@@ -528,7 +718,7 @@ export const JobsPage: React.FC = () => {
           onClick={() => setSelectedJob(null)}
         >
           <div
-            className="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 text-left shadow-2xl relative"
+            className="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 text-left shadow-2xl relative max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-start justify-between pb-4 border-b border-slate-800">
@@ -641,31 +831,72 @@ export const JobsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="text-slate-500 block">Assigned Technician</span>
-                  <span className="text-slate-200 font-medium">
-                    {selectedJob.assigned_technician_id ? (
-                      <span className="text-emerald-400 font-mono font-semibold">
-                        {selectedJob.assigned_technician_id}
-                      </span>
-                    ) : (
-                      <span className="text-slate-500 italic">Unassigned (Pending Dispatch)</span>
-                    )}
-                  </span>
+              {/* State History Audit Log */}
+              <div className="p-3 rounded-lg bg-slate-950 border border-slate-800">
+                <div className="flex items-center space-x-1.5 text-slate-400 mb-2">
+                  <History className="w-3.5 h-3.5 text-indigo-400" />
+                  <span className="font-medium text-slate-300">State Transition Audit Trail</span>
                 </div>
-                {selectedJob.tags.length > 0 && (
-                  <div className="text-right">
-                    <span className="text-slate-500 block">Tags</span>
-                    <span className="text-slate-400 font-mono text-[10px]">
-                      {selectedJob.tags.join(', ')}
-                    </span>
+                {loadingHistory ? (
+                  <span className="text-slate-500">Loading audit history...</span>
+                ) : historyList.length === 0 ? (
+                  <span className="text-slate-500 italic">No transition events recorded yet.</span>
+                ) : (
+                  <div className="space-y-2">
+                    {historyList.map((h) => (
+                      <div
+                        key={h.id}
+                        className="flex items-start justify-between pb-1.5 border-b border-slate-900 last:border-0"
+                      >
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <span className="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px]">
+                              {h.from_status || 'CREATED'}
+                            </span>
+                            <span className="text-slate-500">&rarr;</span>
+                            <span className="px-1.5 py-0.5 rounded bg-indigo-950/80 text-indigo-300 border border-indigo-800 text-[10px] font-semibold">
+                              {h.to_status}
+                            </span>
+                          </div>
+                          {h.reason && (
+                            <p className="text-[11px] text-slate-400 mt-1">{h.reason}</p>
+                          )}
+                        </div>
+                        <span className="text-[10px] font-mono text-slate-500">
+                          {formatDateTime(h.changed_at)}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-800 flex justify-end">
+            <div className="pt-4 border-t border-slate-800 flex items-center justify-between">
+              <div>
+                {selectedJob.status !== 'completed' && selectedJob.status !== 'cancelled' ? (
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleOpenEdit(selectedJob)}
+                      className="px-3 py-1.5 rounded-lg bg-indigo-950 text-indigo-300 hover:bg-indigo-900 border border-indigo-800 text-xs font-medium transition"
+                    >
+                      Edit Job
+                    </button>
+                    <button
+                      onClick={() => handleOpenCancel(selectedJob)}
+                      className="px-3 py-1.5 rounded-lg bg-rose-950 text-rose-300 hover:bg-rose-900 border border-rose-800 text-xs font-medium transition"
+                    >
+                      Cancel Job
+                    </button>
+                  </div>
+                ) : (
+                  <span className="text-[11px] text-slate-500 flex items-center">
+                    <Lock className="w-3.5 h-3.5 mr-1" />
+                    Protected ({selectedJob.status})
+                  </span>
+                )}
+              </div>
+
               <button
                 onClick={() => setSelectedJob(null)}
                 className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white transition"
@@ -673,6 +904,202 @@ export const JobsPage: React.FC = () => {
                 Close
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* CANCEL CONFIRMATION DIALOG */}
+      {cancellingJob && (
+        <div
+          data-testid="cancel-confirm-modal"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setCancellingJob(null)}
+        >
+          <div
+            className="bg-slate-900 border border-rose-900/60 rounded-2xl max-w-md w-full p-6 text-left shadow-2xl relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start space-x-3">
+              <div className="w-10 h-10 rounded-full bg-rose-950 border border-rose-800 flex items-center justify-center text-rose-400 shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-white">
+                  Cancel Job {cancellingJob.id}?
+                </h3>
+                <p className="text-xs text-slate-400 mt-1">
+                  Are you sure you want to cancel &ldquo;{cancellingJob.title}&rdquo;? This action
+                  is irreversible and will release any assigned technician.
+                </p>
+              </div>
+            </div>
+
+            {cancelError && (
+              <div className="mt-3 p-2.5 rounded-lg bg-rose-950 border border-rose-800 text-rose-300 text-xs">
+                {cancelError}
+              </div>
+            )}
+
+            <div className="mt-4">
+              <label className="block text-xs text-slate-400 mb-1">
+                Cancellation Reason (Audited)
+              </label>
+              <input
+                type="text"
+                value={cancelReason}
+                onChange={(e) => setCancelReason(e.target.value)}
+                placeholder="e.g. Customer cancelled appointment"
+                className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-rose-500"
+              />
+            </div>
+
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setCancellingJob(null)}
+                className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white transition"
+              >
+                Keep Job
+              </button>
+              <button
+                type="button"
+                disabled={cancelSubmitting}
+                onClick={handleCancelSubmit}
+                className="px-4 py-2 rounded-lg bg-rose-600 hover:bg-rose-500 text-xs font-semibold text-white transition shadow-md shadow-rose-600/30 disabled:opacity-50"
+              >
+                {cancelSubmitting ? 'Cancelling...' : 'Confirm Cancellation'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* EDIT JOB MODAL */}
+      {editingJob && (
+        <div
+          data-testid="edit-job-modal"
+          className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 overflow-y-auto"
+          onClick={() => setEditingJob(null)}
+        >
+          <div
+            className="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 text-left shadow-2xl relative max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+              <div>
+                <h3 className="text-base font-bold text-white">Edit Job {editingJob.id}</h3>
+                <p className="text-xs text-slate-400">
+                  Update service parameters while preserving constraints.
+                </p>
+              </div>
+              <button
+                onClick={() => setEditingJob(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {editError && (
+              <div className="mt-4 p-3 rounded-lg bg-rose-950/60 border border-rose-800 text-rose-300 text-xs flex items-start space-x-2">
+                <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                <span>{editError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleEditSubmit} className="py-4 space-y-4 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 mb-1">Job Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.title}
+                    onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Customer Name *</label>
+                  <input
+                    type="text"
+                    required
+                    value={editFormData.customer_name}
+                    onChange={(e) => setEditFormData({ ...editFormData, customer_name: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-slate-400 mb-1">Priority *</label>
+                  <select
+                    value={editFormData.priority}
+                    onChange={(e) => setEditFormData({ ...editFormData, priority: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500"
+                  >
+                    <option value={1}>1 - Urgent</option>
+                    <option value={2}>2 - High</option>
+                    <option value={3}>3 - Medium</option>
+                    <option value={4}>4 - Low</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Duration (Mins) *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    required
+                    value={editFormData.duration_minutes}
+                    onChange={(e) => setEditFormData({ ...editFormData, duration_minutes: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 mb-1">Zone *</label>
+                  <select
+                    value={editFormData.zone_id}
+                    onChange={(e) => setEditFormData({ ...editFormData, zone_id: e.target.value })}
+                    className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500"
+                  >
+                    {ZONES.map((z) => (
+                      <option key={z} value={z}>
+                        Zone {z}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 mb-1">Reason for Change (Audit)</label>
+                <input
+                  type="text"
+                  value={editFormData.reason}
+                  onChange={(e) => setEditFormData({ ...editFormData, reason: e.target.value })}
+                  placeholder="e.g. Customer requested shorter duration"
+                  className="w-full px-3 py-2 rounded-lg bg-slate-950 border border-slate-800 text-white focus:outline-none focus:border-indigo-500"
+                />
+              </div>
+
+              <div className="pt-2 border-t border-slate-800 flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setEditingJob(null)}
+                  className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={editSubmitting}
+                  className="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-semibold text-white transition shadow-md shadow-indigo-600/30 disabled:opacity-50"
+                >
+                  {editSubmitting ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

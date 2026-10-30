@@ -4,12 +4,24 @@ from sqlalchemy.orm import Session
 
 from app.db.session import get_db
 from app.models.job import Job
-from app.schemas.job import JobCreate, JobResponse
+from app.schemas.job import (
+    JobCreate,
+    JobUpdate,
+    JobCancelRequest,
+    JobResponse,
+    JobStateHistoryResponse,
+)
 from app.services.job_service import (
     create_job,
+    update_job,
+    cancel_job,
+    get_job_state_history,
+    JobNotFoundError,
     DuplicateJobIdError,
     DuplicateIdempotencyKeyError,
     InvalidZoneError,
+    InvalidStateTransitionError,
+    ProtectedJobModificationError,
 )
 
 router = APIRouter()
@@ -26,35 +38,15 @@ def create_new_job(
     job_in: JobCreate,
     db: Session = Depends(get_db),
 ) -> JobResponse:
-    """
-    Creates a new service job with rigorous constraint validation:
-    - Customer name and job title must not be empty.
-    - Priority must be between 1 (urgent) and 4 (low).
-    - Duration must be positive.
-    - Time window start must be earlier than window end and duration must fit in window.
-    - SLA deadline cannot be earlier than window start.
-    - Idempotency key and unique ID conflicts are rejected with HTTP 409 Conflict.
-    - Non-existent zones are rejected with HTTP 400 Bad Request.
-    """
     try:
         job = create_job(db=db, job_in=job_in)
         return JobResponse.model_validate(job)
-    except DuplicateJobIdError as e:
+    except (DuplicateJobIdError, DuplicateIdempotencyKeyError) as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e),
         )
-    except DuplicateIdempotencyKeyError as e:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=str(e),
-        )
-    except InvalidZoneError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-    except ValueError as e:
+    except (InvalidZoneError, ValueError) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=str(e),
@@ -76,7 +68,6 @@ def list_jobs(
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
 ) -> List[JobResponse]:
-    """Lists service jobs with optional search, status, priority, and zone filtering."""
     query = db.query(Job)
     if search:
         search_pattern = f"%{search.strip()}%"
@@ -106,7 +97,6 @@ def get_job(
     job_id: str,
     db: Session = Depends(get_db),
 ) -> JobResponse:
-    """Retrieves a specific service job by its ID."""
     job = db.query(Job).filter_by(id=job_id).first()
     if not job:
         raise HTTPException(
@@ -114,3 +104,64 @@ def get_job(
             detail=f"Job with ID '{job_id}' not found",
         )
     return JobResponse.model_validate(job)
+
+
+@router.patch(
+    "/jobs/{job_id}",
+    response_model=JobResponse,
+    tags=["Jobs"],
+    summary="Update a service job or trigger permitted state transition",
+)
+def update_existing_job(
+    job_id: str,
+    job_update: JobUpdate,
+    db: Session = Depends(get_db),
+) -> JobResponse:
+    try:
+        job = update_job(db=db, job_id=job_id, job_update=job_update)
+        return JobResponse.model_validate(job)
+    except JobNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except (InvalidStateTransitionError, ProtectedJobModificationError, InvalidZoneError, ValueError) as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+
+@router.post(
+    "/jobs/{job_id}/cancel",
+    response_model=JobResponse,
+    tags=["Jobs"],
+    summary="Cancel a service job",
+)
+def cancel_existing_job(
+    job_id: str,
+    cancel_in: Optional[JobCancelRequest] = None,
+    db: Session = Depends(get_db),
+) -> JobResponse:
+    reason = cancel_in.reason if cancel_in else "Cancelled by operator"
+    try:
+        job = cancel_job(db=db, job_id=job_id, reason=reason)
+        return JobResponse.model_validate(job)
+    except JobNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    except InvalidStateTransitionError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Cannot cancel job in '{e.from_status}' state: {str(e)}",
+        )
+
+
+@router.get(
+    "/jobs/{job_id}/history",
+    response_model=List[JobStateHistoryResponse],
+    tags=["Jobs"],
+    summary="Get job state change history",
+)
+def get_job_history(
+    job_id: str,
+    db: Session = Depends(get_db),
+) -> List[JobStateHistoryResponse]:
+    try:
+        history = get_job_state_history(db=db, job_id=job_id)
+        return [JobStateHistoryResponse.model_validate(h) for h in history]
+    except JobNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))

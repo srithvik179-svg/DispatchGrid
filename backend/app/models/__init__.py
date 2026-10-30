@@ -5,6 +5,7 @@ from app.models.technician import Technician
 from app.models.job import Job
 from app.models.assignment import Assignment
 from app.models.disruption import DisruptionScenario
+from app.models.job_history import JobStateHistory
 
 __all__ = [
     "Base",
@@ -14,4 +15,5 @@ __all__ = [
     "Job",
     "Assignment",
     "DisruptionScenario",
+    "JobStateHistory",
 ]

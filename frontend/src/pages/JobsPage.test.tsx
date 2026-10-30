@@ -51,11 +51,49 @@ const mockJobsList = [
   },
 ];
 
+const mockHistoryList = [
+  {
+    id: 1,
+    job_id: 'JOB-001',
+    from_status: null,
+    to_status: 'pending',
+    reason: 'Initial dataset import',
+    changed_by: 'system',
+    changed_at: '2026-11-02T10:00:00+05:30',
+  },
+];
+
 describe('JobsPage Component', () => {
   beforeEach(() => {
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockImplementation((_url: string, opts?: any) => {
+      vi.fn().mockImplementation((url: string, opts?: any) => {
+        if (typeof url === 'string' && url.includes('/history')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => mockHistoryList,
+          });
+        }
+        if (opts && opts.method === 'PATCH') {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              ...mockJobsList[0],
+              title: 'Firewall setup updated',
+              priority: 2,
+              priority_label: 'high',
+            }),
+          });
+        }
+        if (opts && opts.method === 'POST' && typeof url === 'string' && url.includes('/cancel')) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              ...mockJobsList[0],
+              status: 'cancelled',
+            }),
+          });
+        }
         if (opts && opts.method === 'POST') {
           return Promise.resolve({
             ok: true,
@@ -132,7 +170,7 @@ describe('JobsPage Component', () => {
     });
   });
 
-  it('opens job detail modal on clicking a job', async () => {
+  it('opens job detail modal and displays state history', async () => {
     render(<JobsPage />);
 
     await waitFor(() => {
@@ -145,6 +183,8 @@ describe('JobsPage Component', () => {
     await waitFor(() => {
       expect(screen.getByTestId('job-detail-modal')).toBeInTheDocument();
       expect(screen.getByText('Operational Timing Constraints')).toBeInTheDocument();
+      expect(screen.getByText('State Transition Audit Trail')).toBeInTheDocument();
+      expect(screen.getByText('Initial dataset import')).toBeInTheDocument();
     });
   });
 
@@ -172,5 +212,74 @@ describe('JobsPage Component', () => {
     await waitFor(() => {
       expect(screen.getByText(/Job JOB-109 successfully created!/i)).toBeInTheDocument();
     });
+  });
+
+  it('opens edit modal and updates job details', async () => {
+    render(<JobsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Firewall setup')).toBeInTheDocument();
+    });
+
+    const editBtn = screen.getByLabelText('Edit JOB-001');
+    fireEvent.click(editBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('edit-job-modal')).toBeInTheDocument();
+      expect(screen.getByText(/Edit Job JOB-001/i)).toBeInTheDocument();
+    });
+
+    // Change title
+    const titleInput = screen.getByDisplayValue('Firewall setup');
+    fireEvent.change(titleInput, { target: { value: 'Firewall setup updated' } });
+
+    // Submit edit form
+    const saveBtn = screen.getByRole('button', { name: /Save Changes/i });
+    fireEvent.click(saveBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('edit-job-modal')).not.toBeInTheDocument();
+    });
+  });
+
+  it('opens cancel modal and confirms cancellation with reason', async () => {
+    render(<JobsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Firewall setup')).toBeInTheDocument();
+    });
+
+    const cancelBtn = screen.getByLabelText('Cancel JOB-001');
+    fireEvent.click(cancelBtn);
+
+    await waitFor(() => {
+      expect(screen.getByTestId('cancel-confirm-modal')).toBeInTheDocument();
+      expect(screen.getByText(/Cancel Job JOB-001\?/i)).toBeInTheDocument();
+    });
+
+    // Enter cancellation reason
+    const reasonInput = screen.getByPlaceholderText(/e.g. Customer cancelled appointment/i);
+    fireEvent.change(reasonInput, { target: { value: 'Client requested postponement' } });
+
+    // Submit cancellation
+    const confirmBtn = screen.getByRole('button', { name: /Confirm Cancellation/i });
+    fireEvent.click(confirmBtn);
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('cancel-confirm-modal')).not.toBeInTheDocument();
+    });
+  });
+
+  it('protects completed jobs by disabling edit and cancel actions', async () => {
+    render(<JobsPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Water filter maintenance')).toBeInTheDocument();
+    });
+
+    // JOB-101 is completed, so it should have a lock icon indicator and no Edit/Cancel buttons
+    expect(screen.queryByLabelText('Edit JOB-101')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Cancel JOB-101')).not.toBeInTheDocument();
+    expect(screen.getByTitle(/Completed\/Cancelled jobs are protected/i)).toBeInTheDocument();
   });
 });
