@@ -395,5 +395,60 @@ class TimeWindowCheckRequest(BaseModel):
     enforce_simulation_clock: bool = True
 
 
+class SchedulingConflict(BaseModel):
+    """Specific conflict detected between a proposed assignment and technician itinerary."""
+    conflict_type: str = Field(
+        ...,
+        description="'double_booking', 'travel_buffer_preceding', 'travel_buffer_succeeding', 'in_progress_collision', 'completed_collision', 'home_travel_conflict', 'shift_boundary_conflict', 'unavailability_collision'",
+    )
+    code: str = Field(..., description="Machine-readable conflict error code")
+    conflicting_job_id: Optional[str] = None
+    conflicting_assignment_id: Optional[int] = None
+    conflicting_status: Optional[str] = None
+    conflicting_start: Optional[datetime] = None
+    conflicting_end: Optional[datetime] = None
+    travel_minutes_required: Optional[float] = None
+    travel_buffer_deficit_minutes: Optional[float] = None
+    message: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ConflictCheckResult(BaseModel):
+    """Comprehensive result of conflict detection for a proposed assignment against technician schedule."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    job_id: Optional[str] = None
+    has_conflict: bool
+    is_eligible: bool
+    proposed_start: datetime
+    proposed_end: datetime
+    duration_minutes: int
+    conflicts: List[SchedulingConflict] = Field(default_factory=list)
+    preceding_assignment: Optional[Dict[str, Any]] = None
+    succeeding_assignment: Optional[Dict[str, Any]] = None
+    requires_overtime: bool = False
+    overtime_minutes: int = 0
+    overtime_penalty: float = 0.0
+    summary: str = ""
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ConflictCheckRequest(BaseModel):
+    """Request payload for validating scheduling conflicts against technician itinerary."""
+    technician_id: str
+    job_id: Optional[str] = None
+    proposed_start: datetime
+    duration_minutes: Optional[int] = Field(None, gt=0)
+    proposed_end: Optional[datetime] = None
+    job_lat: Optional[float] = None
+    job_lng: Optional[float] = None
+    include_travel: bool = True
+    as_of: Optional[datetime] = None
+    enforce_simulation_clock: bool = True
+
+
+
 
 

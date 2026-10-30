@@ -1,6 +1,6 @@
 import json
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 
@@ -22,6 +22,8 @@ from app.scheduling.schemas import (
     TechnicianAvailabilityEvaluation,
     TimeWindowValidationResult,
     FeasibleWindowResult,
+    SchedulingConflict,
+    ConflictCheckResult,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -29,6 +31,7 @@ from app.scheduling.loader import (
     load_scheduling_inputs,
     load_pending_jobs,
     load_eligible_technicians,
+    load_existing_assignments,
 )
 from app.scheduling.skills import (
     DEFAULT_UNSUPPORTED_SKILLS,
@@ -56,6 +59,7 @@ from app.scheduling.time_windows import (
     validate_job_instance_time_window,
     calculate_feasible_service_window,
 )
+from app.scheduling.conflicts import detect_scheduling_conflicts
 
 
 
@@ -393,6 +397,67 @@ class SchedulingService:
             enforce_simulation_clock=enforce_simulation_clock,
             job_id=job.id,
         )
+
+    def check_technician_conflicts(
+        self,
+        technician_id: str,
+        proposed_start: datetime,
+        proposed_end: Optional[datetime] = None,
+        duration_minutes: Optional[int] = None,
+        job_id: Optional[str] = None,
+        job_lat: Optional[float] = None,
+        job_lng: Optional[float] = None,
+        include_travel: bool = True,
+        as_of: Optional[datetime] = None,
+        enforce_simulation_clock: bool = True,
+    ) -> ConflictCheckResult:
+        """
+        Evaluates scheduling conflicts, travel buffers, protected active assignments,
+        and multi-date boundaries for a technician against existing assignments.
+        """
+        technician = self.db.query(Technician).filter_by(id=technician_id).first()
+        if not technician:
+            raise ValueError(f"Technician with ID '{technician_id}' not found.")
+
+        # If job_id supplied, resolve missing duration and coordinates
+        actual_lat = job_lat
+        actual_lng = job_lng
+        actual_duration = duration_minutes
+
+        if job_id:
+            job = self.db.query(Job).filter_by(id=job_id).first()
+            if job:
+                if actual_lat is None:
+                    actual_lat = job.lat
+                if actual_lng is None:
+                    actual_lng = job.lng
+                if actual_duration is None:
+                    actual_duration = job.duration_minutes
+
+        # Resolve end timestamp
+        actual_end = proposed_end
+        if actual_end is None and actual_duration:
+            actual_end = proposed_start + timedelta(minutes=actual_duration)
+        elif actual_end is None:
+            raise ValueError("Either proposed_end or duration_minutes (or job_id) must be provided.")
+
+        ref_clock = as_of or self.get_clock()
+        existing_assignments = load_existing_assignments(self.db)
+
+        return detect_scheduling_conflicts(
+            technician_id=technician_id,
+            proposed_start=proposed_start,
+            proposed_end=actual_end,
+            job_id=job_id,
+            job_lat=actual_lat,
+            job_lng=actual_lng,
+            existing_assignments=existing_assignments,
+            technician=technician,
+            as_of=ref_clock,
+            include_travel=include_travel,
+            enforce_simulation_clock=enforce_simulation_clock,
+        )
+
 
 
 

@@ -25,6 +25,9 @@ from app.scheduling.schemas import (
     TimeWindowValidationResult,
     FeasibleWindowResult,
     TimeWindowCheckRequest,
+    SchedulingConflict,
+    ConflictCheckResult,
+    ConflictCheckRequest,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -75,6 +78,10 @@ from app.scheduling.time_windows import (
     validate_job_instance_time_window,
     calculate_feasible_service_window,
 )
+from app.scheduling.conflicts import (
+    detect_scheduling_conflicts,
+    extract_assignment_info,
+)
 
 __all__ = [
     "SchedulingRunConfig",
@@ -103,6 +110,9 @@ __all__ = [
     "TimeWindowValidationResult",
     "FeasibleWindowResult",
     "TimeWindowCheckRequest",
+    "SchedulingConflict",
+    "ConflictCheckResult",
+    "ConflictCheckRequest",
     "get_simulation_clock",
     "get_planning_horizon",
     "load_scheduling_inputs",
@@ -138,4 +148,6 @@ __all__ = [
     "validate_job_time_window",
     "validate_job_instance_time_window",
     "calculate_feasible_service_window",
+    "detect_scheduling_conflicts",
+    "extract_assignment_info",
 ]

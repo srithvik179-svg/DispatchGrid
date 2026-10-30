@@ -30,10 +30,13 @@ from app.scheduling.schemas import (
     TimeWindowValidationResult,
     FeasibleWindowResult,
     TimeWindowCheckRequest,
+    SchedulingConflict,
+    ConflictCheckResult,
+    ConflictCheckRequest,
 )
 
 from app.scheduling.service import SchedulingService
-from app.scheduling.loader import load_eligible_technicians
+from app.scheduling.loader import load_eligible_technicians, load_existing_assignments
 from app.scheduling.skills import filter_technicians_by_skills
 from app.scheduling.equipment import filter_candidates_for_job
 from app.scheduling.geo import haversine_distance, calculate_travel_minutes
@@ -42,6 +45,7 @@ from app.scheduling.time_windows import (
     validate_job_instance_time_window,
     calculate_feasible_service_window,
 )
+from app.scheduling.conflicts import detect_scheduling_conflicts
 
 
 
@@ -652,4 +656,84 @@ def get_job_feasible_window_bounds(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
+
+
+@router.post(
+    "/scheduling/conflicts/check",
+    response_model=ConflictCheckResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Conflicts"],
+    summary="Detect itinerary conflicts, travel buffer violations, and protected job collisions",
+)
+def check_scheduling_conflicts_endpoint(
+    req: ConflictCheckRequest,
+    db: Session = Depends(get_db),
+) -> ConflictCheckResult:
+    """
+    Evaluates whether a proposed job assignment collides with technician's existing assignments,
+    transit travel buffers between consecutive stops, protected in-progress jobs, or shift limits.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.check_technician_conflicts(
+            technician_id=req.technician_id,
+            proposed_start=req.proposed_start,
+            proposed_end=req.proposed_end,
+            duration_minutes=req.duration_minutes,
+            job_id=req.job_id,
+            job_lat=req.job_lat,
+            job_lng=req.job_lng,
+            include_travel=req.include_travel,
+            as_of=req.as_of,
+            enforce_simulation_clock=req.enforce_simulation_clock,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/scheduling/conflicts/technician/{technician_id}/job/{job_id}",
+    response_model=ConflictCheckResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Conflicts"],
+    summary="Check conflict status for a specific technician and database job",
+)
+def get_technician_job_conflict(
+    technician_id: str,
+    job_id: str,
+    proposed_start: Optional[datetime] = None,
+    include_travel: bool = True,
+    enforce_simulation_clock: bool = True,
+    db: Session = Depends(get_db),
+) -> ConflictCheckResult:
+    """
+    Evaluates potential conflicts for a specific technician dispatched to a database job.
+    Defaults proposed_start to job.time_window_start if not provided.
+    """
+    service = SchedulingService(db)
+    job = db.query(Job).filter_by(id=job_id).first()
+    if not job:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Job with ID '{job_id}' not found.",
+        )
+
+    start_dt = proposed_start or job.time_window_start
+    try:
+        return service.check_technician_conflicts(
+            technician_id=technician_id,
+            job_id=job_id,
+            proposed_start=start_dt,
+            include_travel=include_travel,
+            enforce_simulation_clock=enforce_simulation_clock,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
 
