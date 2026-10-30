@@ -21,5 +21,16 @@ class Technician(Base):
 
     home_zone = relationship("Zone")
 
+    @property
+    def home_location(self) -> dict:
+        return {"lat": self.home_lat, "lng": self.home_lng}
+
+    @property
+    def overtime(self) -> dict:
+        return {
+            "allowed": bool(self.overtime_allowed),
+            "max_minutes_per_shift": int(self.max_overtime_minutes or 0),
+        }
+
     def __repr__(self) -> str:
         return f"<Technician {self.id} ({self.name})>"
