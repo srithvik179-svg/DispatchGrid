@@ -41,6 +41,9 @@ from app.scheduling.schemas import (
     ScheduleScoreResult,
     JobPriorityProfile,
     CompetingJobResolution,
+    TravelOptimizationResult,
+    TechnicianTravelSummary,
+    TravelMetricsComparison,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -1170,6 +1173,152 @@ class SchedulingService:
             )
             for j in sorted_jobs
         ]
+
+    # =========================================================================
+    # PHASE 25 – Travel-Time Optimisation & Geographical Route Refinement
+    # =========================================================================
+
+    def optimize_travel(
+        self,
+        persist: bool = False,
+        run_id: Optional[str] = None,
+        as_of: Optional[datetime] = None,
+    ) -> TravelOptimizationResult:
+        """
+        Executes travel-time schedule optimization:
+        1. Evaluates baseline initial schedule.
+        2. Applies 2-opt route re-sequencing per shift date to eliminate back-and-forth travel and zone switching.
+        3. Strictly preserves all hard operational constraints (zero violations).
+        4. Optionally persists optimized schedules to PostgreSQL.
+        """
+        from app.scheduling.travel_opt import optimize_schedule_travel
+        from app.scheduling.algorithm import run_deterministic_initial_scheduler
+
+        as_of_dt = as_of or self.get_clock()
+        inputs = self.load_inputs(config=SchedulingRunConfig(as_of=as_of_dt))
+
+        # Check existing assignments in DB
+        db_assignments = self.db.query(Assignment).all()
+        if len(db_assignments) <= 7:
+            # Generate initial assignments first
+            init_res = run_deterministic_initial_scheduler(
+                inputs=inputs,
+                unsupported_skills=self.get_unsupported_skills(),
+            )
+            initial_plans = init_res.assignments
+        else:
+            # Load active plans from DB
+            initial_plans = []
+            for a in db_assignments:
+                job = self.db.query(Job).filter_by(id=a.job_id).first()
+                initial_plans.append(
+                    AssignedJobPlan(
+                        job_id=a.job_id,
+                        technician_id=a.technician_id,
+                        scheduled_start=a.start_time,
+                        scheduled_end=a.end_time,
+                        travel_time_minutes=0.0,
+                        is_existing=a.is_existing,
+                        status=a.status,
+                        details={
+                            "job_title": job.title if job else "",
+                            "zone_id": job.zone_id if job else None,
+                        },
+                    )
+                )
+
+        jobs_all = [JobResponse.model_validate(j) for j in self.db.query(Job).all()]
+        technicians_all = [TechnicianResponse.model_validate(t) for t in self.db.query(Technician).all()]
+
+        result = optimize_schedule_travel(
+            initial_assignments=initial_plans,
+            technicians=technicians_all,
+            jobs=jobs_all,
+            baseline_assignments=inputs.existing_assignments,
+            as_of=as_of_dt,
+            run_id=run_id or generate_run_id("RUN-OPT"),
+        )
+
+        if persist:
+            # Persist optimized assignments
+            for p in result.assignments:
+                if p.is_existing:
+                    continue
+                db_a = self.db.query(Assignment).filter_by(job_id=p.job_id).first()
+                if not db_a:
+                    db_a = Assignment(
+                        id=f"ASN-{uuid.uuid4().hex[:8].upper()}",
+                        job_id=p.job_id,
+                        technician_id=p.technician_id,
+                        start_time=p.scheduled_start,
+                        end_time=p.scheduled_end,
+                        status="scheduled",
+                        is_existing=False,
+                    )
+                    self.db.add(db_a)
+                else:
+                    db_a.technician_id = p.technician_id
+                    db_a.start_time = p.scheduled_start
+                    db_a.end_time = p.scheduled_end
+
+                # Update job
+                job_rec = self.db.query(Job).filter_by(id=p.job_id).first()
+                if job_rec and not (job_rec.status in ["completed", "in_progress"]):
+                    job_rec.status = "assigned"
+                    job_rec.assigned_technician_id = p.technician_id
+                    job_rec.scheduled_start = p.scheduled_start
+                    job_rec.scheduled_end = p.scheduled_end
+
+            self.db.commit()
+            result.persisted = True
+
+        return result
+
+    def get_travel_metrics(self) -> Dict[str, Any]:
+        """
+        Calculates and returns current leg-by-leg travel summaries and fleet transit metrics.
+        """
+        from app.scheduling.travel_opt import calculate_fleet_travel_breakdown
+
+        db_assignments = self.db.query(Assignment).all()
+        if len(db_assignments) <= 7:
+            # Generate initial schedule to compute metrics
+            inputs = self.load_inputs()
+            from app.scheduling.algorithm import run_deterministic_initial_scheduler
+            init_res = run_deterministic_initial_scheduler(
+                inputs=inputs,
+                unsupported_skills=self.get_unsupported_skills(),
+            )
+            plans = init_res.assignments
+        else:
+            plans = []
+            for a in db_assignments:
+                plans.append(
+                    AssignedJobPlan(
+                        job_id=a.job_id,
+                        technician_id=a.technician_id,
+                        scheduled_start=a.start_time,
+                        scheduled_end=a.end_time,
+                        travel_time_minutes=0.0,
+                        is_existing=a.is_existing,
+                        status=a.status,
+                    )
+                )
+
+        jobs_all = {j.id: JobResponse.model_validate(j) for j in self.db.query(Job).all()}
+        technicians_all = [TechnicianResponse.model_validate(t) for t in self.db.query(Technician).all()]
+
+        summaries, metrics = calculate_fleet_travel_breakdown(
+            technicians=technicians_all,
+            assignments=plans,
+            jobs_lookup=jobs_all,
+        )
+
+        return {
+            "fleet_metrics": metrics,
+            "technician_travel": summaries,
+        }
+
 
 
 

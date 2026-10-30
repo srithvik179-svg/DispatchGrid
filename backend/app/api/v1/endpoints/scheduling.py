@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Union, Dict
+from typing import Optional, Union, Dict, Any, List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -48,6 +48,9 @@ from app.scheduling.schemas import (
     JobPriorityProfile,
     CompetingJobResolution,
     ConflictPairEvaluationRequest,
+    TravelOptimizationResult,
+    TravelOptimizationRequest,
+    TechnicianTravelSummary,
 )
 
 from app.scheduling.service import SchedulingService
@@ -1185,6 +1188,68 @@ def get_prioritized_pending_jobs_endpoint(
     """
     service = SchedulingService(db)
     return service.get_prioritized_pending_jobs()
+
+
+# =========================================================================
+# PHASE 25 – Travel-Time Optimisation Endpoints
+# =========================================================================
+
+@router.post(
+    "/schedule/optimize/travel",
+    response_model=TravelOptimizationResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Optimize technician travel time and minimize unnecessary zone switching",
+)
+@router.post(
+    "/scheduling/optimize/travel",
+    response_model=TravelOptimizationResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def optimize_travel_endpoint(
+    req: Optional[TravelOptimizationRequest] = None,
+    db: Session = Depends(get_db),
+) -> TravelOptimizationResult:
+    """
+    Executes travel-time schedule optimization:
+    - Calculates total travel time for each technician (home-to-first + consecutive inter-job legs).
+    - Evaluates geographical assignment alternatives.
+    - Re-orders technician routes to cluster jobs geographically and minimize zone switching.
+    - Strictly preserves all hard operational constraints.
+    - Delivers measured improvements and explainable action logs.
+    """
+    service = SchedulingService(db)
+    persist = req.persist if req else False
+    run_id = req.run_id if req else None
+    return service.optimize_travel(persist=persist, run_id=run_id)
+
+
+@router.get(
+    "/schedule/travel-metrics",
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Get comprehensive fleet travel metrics and leg-by-leg technician itineraries",
+)
+@router.get(
+    "/scheduling/travel-metrics",
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_travel_metrics_endpoint(
+    db: Session = Depends(get_db),
+) -> Dict[str, Any]:
+    """
+    Returns complete fleet travel analytics:
+    - Total fleet transit minutes and distance km.
+    - Total zone switches and average transit time per job.
+    - Leg-by-leg breakdowns for every technician.
+    """
+    service = SchedulingService(db)
+    return service.get_travel_metrics()
+
 
 
 

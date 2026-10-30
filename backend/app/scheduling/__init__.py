@@ -56,6 +56,12 @@ from app.scheduling.schemas import (
     JobPriorityProfile,
     CompetingJobResolution,
     ConflictPairEvaluationRequest,
+    TravelLegDetail,
+    TechnicianTravelSummary,
+    TravelMetricsComparison,
+    TravelOptimizationAction,
+    TravelOptimizationResult,
+    TravelOptimizationRequest,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -138,6 +144,12 @@ from app.scheduling.priority import (
     prioritize_jobs_with_scarcity,
     resolve_competing_jobs,
     compare_candidate_assignments,
+)
+from app.scheduling.travel_opt import (
+    calculate_technician_travel_summary,
+    calculate_fleet_travel_breakdown,
+    optimize_technician_routes,
+    optimize_schedule_travel,
 )
 
 __all__ = [
@@ -256,4 +268,14 @@ __all__ = [
     "prioritize_jobs_with_scarcity",
     "resolve_competing_jobs",
     "compare_candidate_assignments",
+    "TravelLegDetail",
+    "TechnicianTravelSummary",
+    "TravelMetricsComparison",
+    "TravelOptimizationAction",
+    "TravelOptimizationResult",
+    "TravelOptimizationRequest",
+    "calculate_technician_travel_summary",
+    "calculate_fleet_travel_breakdown",
+    "optimize_technician_routes",
+    "optimize_schedule_travel",
 ]

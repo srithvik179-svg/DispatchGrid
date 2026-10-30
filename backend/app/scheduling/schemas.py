@@ -828,6 +828,105 @@ class ConflictPairEvaluationRequest(BaseModel):
     job_id_b: str
 
 
+# =========================================================================
+# PHASE 25 – Travel-Time Optimisation Schemas
+# =========================================================================
+
+class TravelLegDetail(BaseModel):
+    """Granular trace of an individual transit leg in a technician's itinerary."""
+    leg_index: int
+    origin_type: str = Field(..., description="'home' or 'job'")
+    origin_id: str
+    origin_zone: Optional[str] = None
+    origin_lat: float
+    origin_lng: float
+    destination_job_id: str
+    destination_zone: Optional[str] = None
+    destination_lat: float
+    destination_lng: float
+    distance_km: float
+    travel_minutes: float
+    is_zone_switch: bool = Field(False, description="True if crossing between distinct operational zones")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TechnicianTravelSummary(BaseModel):
+    """Total travel time, transit distance, and zone switching metrics for a technician."""
+    technician_id: str
+    technician_name: str
+    home_zone_id: Optional[str] = None
+    total_travel_minutes: float
+    total_distance_km: float
+    home_to_first_minutes: float
+    home_to_first_distance_km: float
+    inter_job_minutes: float
+    inter_job_distance_km: float
+    job_count: int
+    zone_switches_count: int
+    legs: List[TravelLegDetail] = Field(default_factory=list)
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TravelMetricsComparison(BaseModel):
+    """Measured, traceable comparison between initial and travel-optimized schedules."""
+    initial_travel_minutes: float
+    optimized_travel_minutes: float
+    travel_minutes_saved: float
+    travel_time_reduction_percent: float
+    initial_distance_km: float
+    optimized_distance_km: float
+    distance_km_saved: float
+    initial_zone_switches: int
+    optimized_zone_switches: int
+    zone_switches_avoided: int
+    average_travel_per_job_initial: float
+    average_travel_per_job_optimized: float
+    technicians_evaluated: int
+    technicians_improved: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TravelOptimizationAction(BaseModel):
+    """Explainable operational improvement applied to reduce unnecessary travel."""
+    action_type: str = Field(..., description="'ROUTE_REORDER', 'TECHNICIAN_SWAP', or 'ZONE_CLUSTERING'")
+    technician_ids: List[str] = Field(default_factory=list)
+    job_ids: List[str] = Field(default_factory=list)
+    travel_minutes_saved: float
+    zone_switches_reduced: int = 0
+    explanation: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TravelOptimizationResult(BaseModel):
+    """Complete results of travel-time schedule optimization pass."""
+    run_id: str
+    as_of: datetime
+    is_feasible: bool = Field(..., description="Strictly True if zero hard operational constraints are violated")
+    hard_violations_count: int = 0
+    hard_violations: List[HardConstraintViolation] = Field(default_factory=list)
+    metrics_comparison: TravelMetricsComparison
+    technician_travel_initial: List[TechnicianTravelSummary] = Field(default_factory=list)
+    technician_travel_optimized: List[TechnicianTravelSummary] = Field(default_factory=list)
+    optimizations_applied: List[TravelOptimizationAction] = Field(default_factory=list)
+    assignments: List[AssignedJobPlan] = Field(default_factory=list)
+    total_assigned_count: int = 0
+    persisted: bool = False
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TravelOptimizationRequest(BaseModel):
+    """Request payload for travel-time schedule optimization."""
+    run_id: Optional[str] = None
+    persist: bool = Field(False, description="Persist improved assignments to the database")
+    max_iterations: int = Field(10, ge=1, le=50)
+
+
+
 
 
 
