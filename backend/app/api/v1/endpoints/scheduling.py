@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, Union, Dict
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -24,7 +25,10 @@ from app.scheduling.schemas import (
     GeoEligibilityResult,
     TravelCalculationRequest,
     TravelCalculationResponse,
+    TechnicianAvailabilityEvaluation,
+    AvailabilityCheckRequest,
 )
+
 from app.scheduling.service import SchedulingService
 from app.scheduling.loader import load_eligible_technicians
 from app.scheduling.skills import filter_technicians_by_skills
@@ -358,7 +362,72 @@ def get_geo_eligibility(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
+@router.post(
+    "/scheduling/availability/evaluate",
+    response_model=TechnicianAvailabilityEvaluation,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Evaluate technician availability across shifts, unavailabilities, and simulation clock",
+)
+def evaluate_technician_availability_endpoint(
+    req: AvailabilityCheckRequest,
+    db: Session = Depends(get_db),
+) -> TechnicianAvailabilityEvaluation:
+    """
+    Validates technician availability against scheduled working shifts, permitted overtime,
+    unavailable intervals, and the authoritative simulation reference clock.
+    """
+    service = SchedulingService(db)
+    duration = req.duration_minutes
+    if not duration and req.job_id:
+        job = db.query(Job).filter_by(id=req.job_id).first()
+        if job:
+            duration = job.duration_minutes
+    if not duration:
+        duration = 60
 
+    try:
+        return service.evaluate_availability(
+            technician_id=req.technician_id,
+            proposed_start=req.proposed_start,
+            duration_minutes=duration,
+            proposed_end=req.proposed_end,
+            job_id=req.job_id,
+            enforce_simulation_clock=req.enforce_simulation_clock,
+            as_of_override=req.as_of,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get(
+    "/scheduling/availability/technician/{technician_id}/job/{job_id}",
+    response_model=TechnicianAvailabilityEvaluation,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Check technician availability for a specific job in the database",
+)
+def get_technician_job_availability(
+    technician_id: str,
+    job_id: str,
+    proposed_start: Optional[datetime] = None,
+    enforce_simulation_clock: bool = True,
+    db: Session = Depends(get_db),
+) -> TechnicianAvailabilityEvaluation:
+    """
+    Evaluates whether a technician is available to perform a specific database job.
+    Defaults proposed start to job.time_window_start and duration to job.duration_minutes.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.check_job_technician_availability(
+            technician_id=technician_id,
+            job_id=job_id,
+            proposed_start=proposed_start,
+            enforce_simulation_clock=enforce_simulation_clock,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 @router.post(

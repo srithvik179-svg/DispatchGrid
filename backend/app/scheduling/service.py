@@ -17,6 +17,9 @@ from app.scheduling.schemas import (
     JobCandidateEvaluation,
     TravelEstimate,
     GeoEligibilityResult,
+    ShiftAvailabilityResult,
+    UnavailabilityCheckResult,
+    TechnicianAvailabilityEvaluation,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -41,6 +44,12 @@ from app.scheduling.geo import (
     calculate_inter_job_travel,
     evaluate_geographic_eligibility,
 )
+from app.scheduling.availability import (
+    evaluate_technician_availability,
+    check_shift_coverage,
+    check_unavailability_collision,
+)
+
 
 
 
@@ -259,6 +268,61 @@ class SchedulingService:
             previous_job=prev_job,
             speed_kmh=speed,
         )
+
+    def evaluate_availability(
+        self,
+        technician_id: str,
+        proposed_start: datetime,
+        duration_minutes: int,
+        proposed_end: Optional[datetime] = None,
+        job_id: Optional[str] = None,
+        enforce_simulation_clock: bool = True,
+        as_of_override: Optional[datetime] = None,
+    ) -> TechnicianAvailabilityEvaluation:
+        """
+        Evaluates technician shift coverage, permitted overtime, unavailable windows,
+        and simulation clock restrictions.
+        """
+        tech = self.db.query(Technician).filter_by(id=technician_id).first()
+        if not tech:
+            raise ValueError(f"Technician with ID '{technician_id}' not found.")
+
+        sim_clock = as_of_override or self.get_clock()
+
+        return evaluate_technician_availability(
+            technician=tech,
+            proposed_start=proposed_start,
+            duration_minutes=duration_minutes,
+            proposed_end=proposed_end,
+            job_id=job_id,
+            simulation_clock=sim_clock,
+            enforce_simulation_clock=enforce_simulation_clock,
+        )
+
+    def check_job_technician_availability(
+        self,
+        technician_id: str,
+        job_id: str,
+        proposed_start: Optional[datetime] = None,
+        enforce_simulation_clock: bool = True,
+    ) -> TechnicianAvailabilityEvaluation:
+        """
+        Evaluates technician availability for a specific job in the database.
+        Defaults to job.time_window_start and job.duration_minutes if not overridden.
+        """
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+
+        start_dt = proposed_start or job.time_window_start
+        return self.evaluate_availability(
+            technician_id=technician_id,
+            proposed_start=start_dt,
+            duration_minutes=job.duration_minutes,
+            job_id=job_id,
+            enforce_simulation_clock=enforce_simulation_clock,
+        )
+
 
 
     def initialize_run(

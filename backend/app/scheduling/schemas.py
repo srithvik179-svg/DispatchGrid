@@ -263,3 +263,65 @@ class TravelCalculationResponse(BaseModel):
     destination_lng: float
 
 
+class ShiftAvailabilityResult(BaseModel):
+    """Evaluation result for technician working shift coverage and overtime rules."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    is_available: bool
+    proposed_start: datetime
+    proposed_end: datetime
+    matched_shift_date: Optional[str] = None
+    is_within_regular_shift: bool = False
+    requires_overtime: bool = False
+    overtime_minutes: int = 0
+    is_overtime_permitted: bool = False
+    max_overtime_minutes: int = 0
+    overtime_penalty_cost: float = 0.0
+    rejection_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class UnavailabilityCheckResult(BaseModel):
+    """Evaluation result for collision detection against scheduled leaves or breaks."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    is_free: bool
+    conflicts: List[Dict[str, Any]] = Field(default_factory=list)
+    rejection_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TechnicianAvailabilityEvaluation(BaseModel):
+    """Consolidated availability evaluation across shifts, unavailabilities, and simulation clock."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    job_id: Optional[str] = None
+    is_available: bool
+    shift_result: ShiftAvailabilityResult
+    unavailability_result: UnavailabilityCheckResult
+    is_before_simulation_clock: bool = False
+    proposed_start: datetime
+    proposed_end: datetime
+    duration_minutes: int
+    overtime_minutes: int = 0
+    overtime_penalty: float = 0.0
+    failure_reasons: List[str] = Field(default_factory=list)
+    combined_rejection_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class AvailabilityCheckRequest(BaseModel):
+    """Request payload for validating technician schedule availability."""
+    technician_id: str
+    job_id: Optional[str] = None
+    proposed_start: datetime
+    duration_minutes: Optional[int] = Field(None, gt=0)
+    proposed_end: Optional[datetime] = None
+    enforce_simulation_clock: bool = True
+    as_of: Optional[datetime] = None
+
+
+

@@ -18,6 +18,10 @@ from app.scheduling.schemas import (
     GeoEligibilityResult,
     TravelCalculationRequest,
     TravelCalculationResponse,
+    ShiftAvailabilityResult,
+    UnavailabilityCheckResult,
+    TechnicianAvailabilityEvaluation,
+    AvailabilityCheckRequest,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -57,6 +61,12 @@ from app.scheduling.geo import (
     calculate_inter_job_travel,
     evaluate_geographic_eligibility,
 )
+from app.scheduling.availability import (
+    DEFAULT_OVERTIME_PENALTY_PER_MINUTE,
+    check_shift_coverage,
+    check_unavailability_collision,
+    evaluate_technician_availability,
+)
 
 __all__ = [
     "SchedulingRunConfig",
@@ -78,6 +88,10 @@ __all__ = [
     "GeoEligibilityResult",
     "TravelCalculationRequest",
     "TravelCalculationResponse",
+    "ShiftAvailabilityResult",
+    "UnavailabilityCheckResult",
+    "TechnicianAvailabilityEvaluation",
+    "AvailabilityCheckRequest",
     "get_simulation_clock",
     "get_planning_horizon",
     "load_scheduling_inputs",
@@ -106,4 +120,8 @@ __all__ = [
     "calculate_home_to_job_travel",
     "calculate_inter_job_travel",
     "evaluate_geographic_eligibility",
+    "DEFAULT_OVERTIME_PENALTY_PER_MINUTE",
+    "check_shift_coverage",
+    "check_unavailability_collision",
+    "evaluate_technician_availability",
 ]
