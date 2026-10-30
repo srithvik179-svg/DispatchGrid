@@ -1,2 +1,161 @@
-# DispatchGrid
-DispatchGrid – Intelligent Workforce Scheduling &amp; Recovery Engine.
+# DispatchGrid – Intelligent Workforce Scheduling & Recovery Engine
+
+DispatchGrid is an enterprise-grade workforce scheduling platform engineered for field-service organizations. It deterministically assigns service jobs to technicians, rigorously enforces multi-dimensional operational constraints, optimizes assignment quality, recovers gracefully from disruptions, and provides complete traceability for every dispatch decision.
+
+---
+
+## 1. System Architecture & Tech Stack
+
+- **Frontend**:
+  - React 18 with TypeScript
+  - Vite build tool
+  - Tailwind CSS for modern enterprise UI
+  - Vitest & React Testing Library for frontend testing
+- **Backend**:
+  - Python 3.9+ with FastAPI
+  - Pydantic v2 data validation & settings management
+  - SQLAlchemy 2.0 ORM / persistent storage
+  - Pytest & HTTPX for integration and unit testing
+- **Dataset**:
+  - Authoritative dataset containing 20 technicians, 108 jobs (100 pending, 4 completed, 3 in progress, 1 cancelled), 6 zones (Z1–Z6), 8 skills, and 12 disruption/reliability scenarios.
+  - Simulation clock: `2026-11-02T10:00:00+05:30`.
+  - Planning horizon: 2 November – 3 November 2026.
+  - Travel calculation: Haversine distance @ 30 km/h.
+
+---
+
+## 2. Project Directory Structure
+
+```
+DispatchGrid/
+├── backend/
+│   ├── app/
+│   │   ├── api/
+│   │   │   └── v1/
+│   │   │       ├── endpoints/
+│   │   │       │   └── health.py        # Health check router
+│   │   │       └── api.py               # Combined API v1 router
+│   │   ├── core/
+│   │   │   └── config.py                # Environment and app configuration
+│   │   └── main.py                      # FastAPI application entrypoint
+│   ├── tests/
+│   │   ├── conftest.py                  # Pytest fixtures & HTTPX client
+│   │   └── test_health.py               # Health endpoint verification
+│   ├── .env.example                     # Backend environment template
+│   └── requirements.txt                 # Backend Python dependencies
+├── frontend/
+│   ├── src/
+│   │   ├── App.tsx                      # DispatchGrid landing page
+│   │   ├── App.test.tsx                 # Frontend landing page tests
+│   │   ├── main.tsx                     # React DOM bootstrap
+│   │   ├── index.css                    # Tailwind CSS definitions
+│   │   ├── setupTests.ts                # Jest-DOM matchers setup
+│   │   └── vite-env.d.ts                # Vite environment typings
+│   ├── index.html                       # HTML5 entrypoint
+│   ├── package.json                     # Node dependencies & scripts
+│   ├── tailwind.config.js               # Tailwind design system configuration
+│   ├── tsconfig.json                    # TypeScript compiler options
+│   └── vite.config.ts                   # Vite bundler & Vitest configuration
+├── data/                                # Authoritative seed dataset
+│   ├── disruptions.json
+│   ├── existing_assignments.json
+│   ├── jobs.json
+│   ├── meta.json
+│   └── technicians.json
+├── generate_seed.py                     # Deterministic seed generator
+├── seed.db                              # SQLite seed database
+├── DATA_README.md                       # Dataset specification & rules
+├── .env.example                         # Global environment template
+├── .gitignore                           # Git ignore rules
+└── README.md                            # Project documentation
+```
+
+---
+
+## 3. Installation & Setup
+
+### Prerequisites
+- Python 3.9+ installed
+- Node.js (v18+ or v20+) and npm installed
+
+### Backend Setup
+1. Navigate to the `backend` directory:
+   ```bash
+   cd backend
+   ```
+2. Create and activate a Python virtual environment:
+   ```bash
+   python3 -m venv .venv
+   source .venv/bin/activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install --upgrade pip
+   pip install -r requirements.txt
+   ```
+4. Copy the environment configuration:
+   ```bash
+   cp .env.example .env
+   ```
+
+### Frontend Setup
+1. Navigate to the `frontend` directory:
+   ```bash
+   cd frontend
+   ```
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+---
+
+## 4. Running the Application
+
+### Start the Backend
+From the root or `backend` folder:
+```bash
+cd backend
+source .venv/bin/activate
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+- API Docs: `http://localhost:8000/docs`
+- Health Endpoint: `http://localhost:8000/health` (or `http://localhost:8000/api/v1/health`)
+
+### Start the Frontend
+From the `frontend` folder:
+```bash
+cd frontend
+npm run dev
+```
+- Access the web interface at: `http://localhost:5173`
+
+The frontend connects directly to the backend health endpoint and indicates real-time operational status.
+
+---
+
+## 5. Running Automated Tests
+
+### Backend Tests
+```bash
+cd backend
+PYTHONPATH=. ./.venv/bin/pytest
+```
+
+### Frontend Tests
+```bash
+cd frontend
+npm run test
+```
+
+### Frontend Production Build
+```bash
+cd frontend
+npm run build
+```
+
+---
+
+## 6. Development Status
+
+- **Phase 01 – Project Initialisation**: Completed. Clean frontend and backend architecture established, live health endpoint verified, unit and integration tests passing, zero secrets committed.
