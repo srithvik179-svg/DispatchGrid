@@ -285,16 +285,13 @@ def update_job(db: Session, job_id: str, job_update: JobUpdate) -> Job:
 
 
 def cancel_job(db: Session, job_id: str, reason: Optional[str] = None) -> Job:
-    """Cancels a job, enforcing that completed jobs cannot be cancelled."""
+    """Cancels a job, enforcing that completed or already cancelled jobs cannot be cancelled."""
     job = db.query(Job).filter_by(id=job_id).first()
     if not job:
         raise JobNotFoundError(job_id)
 
-    if job.status == "completed":
-        raise InvalidStateTransitionError("completed", "cancelled")
-
-    if job.status == "cancelled":
-        return job  # Idempotent
+    if job.status in ("completed", "cancelled"):
+        raise InvalidStateTransitionError(job.status, "cancelled")
 
     validate_state_transition(job.status, "cancelled")
     old_status = job.status
