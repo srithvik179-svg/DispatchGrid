@@ -75,11 +75,26 @@ from app.scheduling.schemas import (
     StabilityComparisonRequest,
     StabilityRecalculationRequest,
     StabilityRecalculationResult,
+    MetricComparisonItem,
+    ScheduleSnapshotMetrics,
+    TradeOffNarrative,
+    OptimizationReport,
+    OptimizationReportSummary,
+    OptimizationReportGenerateRequest,
 )
 from app.scheduling.stability import (
     is_assignment_protected,
     compare_schedules,
     recalculate_stable_schedule,
+)
+from app.scheduling.reporting import (
+    compute_schedule_snapshot,
+    calculate_improvement_ratio,
+    compare_schedule_metrics,
+    generate_optimization_report,
+    save_report_to_db,
+    load_report_from_db,
+    list_reports_from_db,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -322,4 +337,17 @@ __all__ = [
     "is_assignment_protected",
     "compare_schedules",
     "recalculate_stable_schedule",
+    "MetricComparisonItem",
+    "ScheduleSnapshotMetrics",
+    "TradeOffNarrative",
+    "OptimizationReport",
+    "OptimizationReportSummary",
+    "OptimizationReportGenerateRequest",
+    "compute_schedule_snapshot",
+    "calculate_improvement_ratio",
+    "compare_schedule_metrics",
+    "generate_optimization_report",
+    "save_report_to_db",
+    "load_report_from_db",
+    "list_reports_from_db",
 ]

@@ -51,6 +51,11 @@ from app.scheduling.schemas import (
     StabilityRecalculationResult,
     ScheduleStabilityMetrics,
     AssignmentChangeDetail,
+    OptimizationReport,
+    OptimizationReportSummary,
+    MetricComparisonItem,
+    ScheduleSnapshotMetrics,
+    TradeOffNarrative,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -1713,6 +1718,45 @@ class SchedulingService:
             result.persisted = True
 
         return result
+
+    def generate_optimization_report(
+        self,
+        lateness_weight: float = 2.0,
+        speed_kmh: float = DEFAULT_TRANSIT_SPEED_KMH,
+        w_churn: float = 250.0,
+        persist_optimized_schedule: bool = False,
+        run_id: Optional[str] = None,
+    ) -> OptimizationReport:
+        """
+        Executes end-to-end optimization, builds before-and-after comparison,
+        generates structured trade-off narrative, and stores report persistently.
+        """
+        from app.scheduling.reporting import generate_optimization_report
+
+        return generate_optimization_report(
+            db=self.db,
+            lateness_weight=lateness_weight,
+            speed_kmh=speed_kmh,
+            w_churn=w_churn,
+            persist_optimized_schedule=persist_optimized_schedule,
+            run_id=run_id,
+        )
+
+    def get_optimization_report(self, report_id: str) -> Optional[OptimizationReport]:
+        """
+        Retrieves a stored optimization comparison report by ID.
+        """
+        from app.scheduling.reporting import load_report_from_db
+
+        return load_report_from_db(self.db, report_id)
+
+    def list_optimization_reports(self) -> List[OptimizationReportSummary]:
+        """
+        Lists summaries of all stored optimization comparison reports.
+        """
+        from app.scheduling.reporting import list_reports_from_db
+
+        return list_reports_from_db(self.db)
 
 
 

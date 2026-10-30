@@ -62,6 +62,12 @@ from app.scheduling.schemas import (
     StabilityComparisonRequest,
     StabilityRecalculationRequest,
     StabilityRecalculationResult,
+    OptimizationReport,
+    OptimizationReportSummary,
+    OptimizationReportGenerateRequest,
+    MetricComparisonItem,
+    ScheduleSnapshotMetrics,
+    TradeOffNarrative,
 )
 
 from app.scheduling.service import SchedulingService
@@ -1519,6 +1525,104 @@ def recalculate_stability_endpoint(
         w_shift_per_hour=w_shift,
         persist=persist,
     )
+
+
+# ==============================================================================
+# PHASE 28: OPTIMIZATION COMPARISON & REPORTING ENDPOINTS
+# ==============================================================================
+
+@router.post(
+    "/schedule/reports/generate",
+    response_model=OptimizationReport,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Generate, compare, and store a comprehensive optimization report",
+)
+@router.post(
+    "/scheduling/reports/generate",
+    response_model=OptimizationReport,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def generate_optimization_report_endpoint(
+    req: Optional[OptimizationReportGenerateRequest] = None,
+    db: Session = Depends(get_db),
+) -> OptimizationReport:
+    """
+    Executes complete multi-pass optimization (Travel 2-opt + SLA gap compression),
+    evaluates initial vs optimized metrics across all 5 dimensions, calculates
+    un-fabricated improvement percentages, generates trade-off narratives, and persists report.
+    """
+    service = SchedulingService(db)
+    lateness_w = req.lateness_weight if req else 2.0
+    speed = req.speed_kmh if req else 30.0
+    w_churn = req.w_churn if req else 250.0
+    persist_sched = req.persist_optimized_schedule if req else False
+
+    return service.generate_optimization_report(
+        lateness_weight=lateness_w,
+        speed_kmh=speed,
+        w_churn=w_churn,
+        persist_optimized_schedule=persist_sched,
+    )
+
+
+@router.get(
+    "/schedule/reports",
+    response_model=List[OptimizationReportSummary],
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="List all stored optimization comparison reports",
+)
+@router.get(
+    "/scheduling/reports",
+    response_model=List[OptimizationReportSummary],
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def list_optimization_reports_endpoint(
+    db: Session = Depends(get_db),
+) -> List[OptimizationReportSummary]:
+    """
+    Retrieves chronological summary list of all persistent optimization comparison reports.
+    """
+    service = SchedulingService(db)
+    return service.list_optimization_reports()
+
+
+@router.get(
+    "/schedule/reports/{report_id}",
+    response_model=OptimizationReport,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Retrieve a specific optimization comparison report by ID",
+)
+@router.get(
+    "/scheduling/reports/{report_id}",
+    response_model=OptimizationReport,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_optimization_report_endpoint(
+    report_id: str,
+    db: Session = Depends(get_db),
+) -> OptimizationReport:
+    """
+    Retrieves full optimization report with itemized metrics, trade-off narratives,
+    and initial vs optimized snapshots.
+    """
+    service = SchedulingService(db)
+    report = service.get_optimization_report(report_id)
+    if not report:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Optimization report '{report_id}' not found.",
+        )
+    return report
+
 
 
 

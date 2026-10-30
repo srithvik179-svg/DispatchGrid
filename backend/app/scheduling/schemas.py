@@ -1117,6 +1117,98 @@ class StabilityRecalculationResult(BaseModel):
     persisted: bool = Field(False, description="Whether changes were persisted to database")
 
 
+class MetricComparisonItem(BaseModel):
+    """Granular comparison of a single performance metric between initial and optimized schedules."""
+    metric_name: str = Field(..., description="Human-readable identifier of the metric")
+    dimension: str = Field(..., description="Optimization dimension: travel, sla, unassigned, overtime, churn, total_score")
+    unit: str = Field(..., description="Measurement unit: minutes, penalty points, count, percent")
+    initial_value: float = Field(..., description="Measured value in the initial schedule")
+    optimized_value: float = Field(..., description="Measured value in the optimized schedule")
+    absolute_delta: float = Field(..., description="initial_value - optimized_value (positive indicates improvement for cost/penalty)")
+    improvement_percentage: float = Field(..., description="Calculated percentage improvement using documented formula")
+    formula: str = Field(..., description="Explicit formula used to calculate improvement")
+    direction: str = Field(..., description="Direction: IMPROVED, REGRESSED, UNCHANGED")
+    trade_off_explanation: str = Field(..., description="Explainable description of what changed and why")
+
+
+class ScheduleSnapshotMetrics(BaseModel):
+    """Consolidated KPI snapshot of a schedule at a specific optimization stage."""
+    schedule_label: str = Field(..., description="Stage label: INITIAL, OPTIMIZED, or INTERMEDIATE")
+    run_id: str = Field(..., description="Scheduling run ID")
+    as_of: datetime = Field(..., description="Simulation reference clock timestamp")
+    is_feasible: bool = Field(True, description="Whether the schedule satisfies 100% of hard constraints")
+    hard_violations_count: int = Field(0, description="Count of hard constraint violations (must be 0 for feasible)")
+    total_jobs: int = Field(..., description="Total jobs in planning scope")
+    assigned_jobs_count: int = Field(..., description="Count of dispatched jobs")
+    unassigned_jobs_count: int = Field(..., description="Count of unassigned jobs")
+    total_travel_minutes: float = Field(..., description="Total fleet transit duration in minutes")
+    average_travel_minutes: float = Field(..., description="Average transit duration per assigned job in minutes")
+    total_sla_lateness_minutes: float = Field(..., description="Total lateness beyond soft SLA deadlines in minutes")
+    average_sla_lateness_minutes: float = Field(..., description="Average lateness per breached job in minutes")
+    on_time_jobs_count: int = Field(..., description="Count of jobs completing on or before SLA deadline")
+    at_risk_jobs_count: int = Field(..., description="Count of jobs completing within risk buffer of SLA deadline")
+    breached_jobs_count: int = Field(..., description="Count of jobs completing past soft SLA deadline")
+    unassigned_p1_urgent: int = Field(0, description="Count of unassigned P1 Urgent jobs")
+    unassigned_p2_high: int = Field(0, description="Count of unassigned P2 High jobs")
+    unassigned_p3_medium: int = Field(0, description="Count of unassigned P3 Medium jobs")
+    unassigned_p4_low: int = Field(0, description="Count of unassigned P4 Low jobs")
+    total_overtime_minutes: float = Field(0.0, description="Total authorized overtime across all shifts in minutes")
+    overtime_technicians_count: int = Field(0, description="Count of technicians working overtime")
+    total_churn_penalty: float = Field(0.0, description="Assignment disruption/churn penalty points")
+    objective_total_score: float = Field(..., description="Aggregate multi-objective cost score J(S)")
+    component_sla_penalty: float = Field(..., description="SLA lateness penalty component C_sla")
+    component_travel_penalty: float = Field(..., description="Transit travel penalty component C_travel")
+    component_unassigned_penalty: float = Field(..., description="Unassigned jobs penalty component C_unassigned")
+    component_overtime_penalty: float = Field(..., description="Overtime work penalty component C_overtime")
+    component_churn_penalty: float = Field(..., description="Schedule churn penalty component C_churn")
+
+
+class TradeOffNarrative(BaseModel):
+    """Structured narrative explaining where improvements occurred and where trade-offs were made."""
+    dimension: str = Field(..., description="Optimization dimension: travel, sla, unassigned, overtime, stability, overall")
+    impact: str = Field(..., description="Impact category: POSITIVE, NEUTRAL, NEGATIVE")
+    summary: str = Field(..., description="Concise 1-sentence headline of the outcome")
+    details: str = Field(..., description="Detailed explanation of the causal mechanism and trade-off rationale")
+
+
+class OptimizationReport(BaseModel):
+    """Complete, persistent optimization comparison report between initial and optimized schedules."""
+    report_id: str = Field(..., description="Unique report identifier: REP-OPT-YYYYMMDD-HHMMSS-<hex>")
+    generated_at: datetime = Field(..., description="Timestamp when report was generated")
+    as_of: datetime = Field(..., description="Simulation clock timestamp")
+    initial_schedule_metrics: ScheduleSnapshotMetrics = Field(..., description="Baseline metrics before optimization")
+    optimized_schedule_metrics: ScheduleSnapshotMetrics = Field(..., description="Optimized metrics after travel & SLA optimization")
+    metric_comparisons: List[MetricComparisonItem] = Field(..., description="Itemized comparisons across all dimensions")
+    trade_off_analysis: List[TradeOffNarrative] = Field(..., description="Structured trade-off narratives")
+    overall_score_improvement_percentage: float = Field(..., description="Percentage improvement in aggregate objective score")
+    overall_travel_saved_minutes: float = Field(..., description="Net transit travel minutes eliminated")
+    overall_sla_penalty_saved: float = Field(..., description="Net SLA lateness penalties eliminated")
+    executive_summary: str = Field(..., description="Executive briefing highlighting key findings and trade-offs")
+    is_feasible: bool = Field(True, description="Whether optimized schedule satisfies all hard constraints")
+    hard_constraints_preserved: bool = Field(True, description="Strict confirmation of 0 hard constraint violations")
+
+
+class OptimizationReportSummary(BaseModel):
+    """Lightweight summary of an optimization report for listing endpoints."""
+    report_id: str = Field(..., description="Unique report identifier")
+    generated_at: datetime = Field(..., description="Report generation timestamp")
+    as_of: datetime = Field(..., description="Simulation clock timestamp")
+    overall_score_improvement_percentage: float = Field(..., description="Objective score improvement percentage")
+    overall_travel_saved_minutes: float = Field(..., description="Transit travel minutes saved")
+    overall_sla_penalty_saved: float = Field(..., description="SLA penalties saved")
+    is_feasible: bool = Field(..., description="Whether schedule is feasible")
+    summary: str = Field(..., description="Short overview text")
+
+
+class OptimizationReportGenerateRequest(BaseModel):
+    """Request payload to generate, compare, and persist an optimization report."""
+    lateness_weight: float = Field(2.0, ge=0.1, le=100.0, description="Weight per minute of SLA lateness")
+    speed_kmh: float = Field(30.0, ge=5.0, le=120.0, description="Transit speed in km/h")
+    w_churn: float = Field(250.0, ge=0.0, le=1000.0, description="Weight per disrupted baseline assignment")
+    persist_optimized_schedule: bool = Field(False, description="Whether to persist the optimized assignments to the database")
+
+
+
 
 
 
