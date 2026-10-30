@@ -234,3 +234,57 @@ async def test_filter_technicians_by_zone_and_skill(client: AsyncClient):
     assert len(s_techs) > 0
     for t in s_techs:
         assert any(sk.lower() == "electrical" for sk in t["skills"])
+
+
+@pytest.mark.anyio
+async def test_update_technician_success(client: AsyncClient, db_session):
+    """Verify modifying technician skills, equipment, and overtime policy."""
+    # Create temporary technician to update
+    custom_id = "T89"
+    pre = db_session.query(Technician).filter_by(id=custom_id).first()
+    if pre:
+        db_session.delete(pre)
+        db_session.commit()
+
+    create_payload = {
+        "id": custom_id,
+        "name": "Original Name",
+        "home_zone_id": "Z1",
+        "home_lat": 12.3052,
+        "home_lng": 76.6552,
+        "skills": ["electrical"],
+        "equipment": ["ladder"],
+    }
+    await client.post("/api/v1/technicians", json=create_payload)
+
+    try:
+        update_payload = {
+            "name": "Updated Name",
+            "skills": ["electrical", "solar", "hvac"],
+            "equipment": ["ladder", "multimeter", "hvac_gauge"],
+            "overtime": {
+                "allowed": True,
+                "max_minutes_per_shift": 120,
+            },
+        }
+        res = await client.patch(f"/api/v1/technicians/{custom_id}", json=update_payload)
+        assert res.status_code == 200
+        data = res.json()
+        assert data["name"] == "Updated Name"
+        assert set(data["skills"]) == {"electrical", "solar", "hvac"}
+        assert set(data["equipment"]) == {"ladder", "multimeter", "hvac_gauge"}
+        assert data["overtime"]["allowed"] is True
+        assert data["overtime"]["max_minutes_per_shift"] == 120
+    finally:
+        post = db_session.query(Technician).filter_by(id=custom_id).first()
+        if post:
+            db_session.delete(post)
+            db_session.commit()
+
+
+@pytest.mark.anyio
+async def test_update_technician_not_found(client: AsyncClient):
+    """Verify 404 response when updating non-existent technician."""
+    res = await client.patch("/api/v1/technicians/T999", json={"name": "Ghost Tech"})
+    assert res.status_code == 404
+

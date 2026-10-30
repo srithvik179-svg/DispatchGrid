@@ -87,6 +87,39 @@ class TechnicianCreate(BaseModel):
         return self
 
 
+class TechnicianUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=100)
+    home_zone_id: Optional[str] = Field(None, max_length=20)
+    home_location: Optional[LocationSchema] = None
+    home_lat: Optional[float] = Field(None, ge=-90.0, le=90.0)
+    home_lng: Optional[float] = Field(None, ge=-180.0, le=180.0)
+    eligible_zones: Optional[List[str]] = None
+    skills: Optional[List[str]] = None
+    equipment: Optional[List[str]] = None
+    shifts: Optional[List[ShiftSchema]] = None
+    unavailable_periods: Optional[List[UnavailablePeriodSchema]] = None
+    overtime: Optional[OvertimeSchema] = None
+    overtime_allowed: Optional[bool] = None
+    max_overtime_minutes: Optional[int] = Field(None, ge=0)
+
+    @model_validator(mode="after")
+    def validate_update_payload(self) -> "TechnicianUpdate":
+        if self.name is not None and not self.name.strip():
+            raise ValueError("Technician name cannot be blank or whitespace")
+
+        if self.home_location is not None:
+            self.home_lat = self.home_location.lat
+            self.home_lng = self.home_location.lng
+        elif self.home_lat is not None and self.home_lng is not None:
+            self.home_location = LocationSchema(lat=self.home_lat, lng=self.home_lng)
+
+        if self.overtime is not None:
+            self.overtime_allowed = self.overtime.allowed
+            self.max_overtime_minutes = self.overtime.max_minutes_per_shift
+
+        return self
+
+
 class TechnicianResponse(BaseModel):
     id: str
     name: str

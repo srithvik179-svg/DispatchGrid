@@ -3,7 +3,7 @@ from typing import List, Optional
 from sqlalchemy.orm import Session
 from app.models.technician import Technician
 from app.models.zone import Zone
-from app.schemas.technician import TechnicianCreate
+from app.schemas.technician import TechnicianCreate, TechnicianUpdate
 
 
 class DuplicateTechnicianIdError(Exception):
@@ -13,6 +13,11 @@ class DuplicateTechnicianIdError(Exception):
 
 class InvalidTechnicianDataError(Exception):
     """Raised when technician registration data violates domain rules."""
+    pass
+
+
+class TechnicianNotFoundError(Exception):
+    """Raised when querying or updating a non-existent technician."""
     pass
 
 
@@ -125,3 +130,64 @@ def get_technicians(
 def get_technician_by_id(db: Session, technician_id: str) -> Optional[Technician]:
     """Retrieve a single technician by ID."""
     return db.query(Technician).filter(Technician.id == technician_id).first()
+
+
+def update_technician(db: Session, technician_id: str, payload: TechnicianUpdate) -> Technician:
+    """Update profile and operational constraints for an existing technician."""
+    tech = db.query(Technician).filter(Technician.id == technician_id).first()
+    if not tech:
+        raise TechnicianNotFoundError(f"Technician with ID '{technician_id}' not found")
+
+    if payload.name is not None:
+        tech.name = payload.name.strip()
+
+    if payload.home_zone_id is not None:
+        tech.home_zone_id = payload.home_zone_id
+
+    if payload.home_lat is not None:
+        tech.home_lat = float(payload.home_lat)
+
+    if payload.home_lng is not None:
+        tech.home_lng = float(payload.home_lng)
+
+    if payload.eligible_zones is not None:
+        tech.eligible_zones = list(payload.eligible_zones)
+        # Ensure home_zone_id is eligible if present
+        if tech.home_zone_id and tech.home_zone_id not in tech.eligible_zones:
+            tech.eligible_zones.append(tech.home_zone_id)
+
+    if payload.skills is not None:
+        tech.skills = list(payload.skills)
+
+    if payload.equipment is not None:
+        tech.equipment = list(payload.equipment)
+
+    if payload.shifts is not None:
+        tech.shifts = [
+            {
+                "date": s.date,
+                "start": s.start.isoformat(),
+                "end": s.end.isoformat(),
+            }
+            for s in payload.shifts
+        ]
+
+    if payload.unavailable_periods is not None:
+        tech.unavailable_periods = [
+            {
+                "start": p.start.isoformat(),
+                "end": p.end.isoformat(),
+                "reason": p.reason or "unavailable",
+            }
+            for p in payload.unavailable_periods
+        ]
+
+    if payload.overtime_allowed is not None:
+        tech.overtime_allowed = bool(payload.overtime_allowed)
+
+    if payload.max_overtime_minutes is not None:
+        tech.max_overtime_minutes = int(payload.max_overtime_minutes)
+
+    db.commit()
+    db.refresh(tech)
+    return tech

@@ -3,13 +3,15 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 
 from app.db.session import get_db
-from app.schemas.technician import TechnicianCreate, TechnicianResponse
+from app.schemas.technician import TechnicianCreate, TechnicianUpdate, TechnicianResponse
 from app.services.technician_service import (
     create_technician,
+    update_technician,
     get_technicians,
     get_technician_by_id,
     DuplicateTechnicianIdError,
     InvalidTechnicianDataError,
+    TechnicianNotFoundError,
 )
 
 router = APIRouter()
@@ -89,3 +91,31 @@ def retrieve_technician(
             detail=f"Technician with ID '{technician_id}' not found",
         )
     return TechnicianResponse.model_validate(technician)
+
+
+@router.patch(
+    "/technicians/{technician_id}",
+    response_model=TechnicianResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Technicians"],
+    summary="Update technician profile and operational parameters",
+)
+def modify_technician(
+    technician_id: str,
+    payload: TechnicianUpdate,
+    db: Session = Depends(get_db),
+) -> TechnicianResponse:
+    """Update profile attributes, certified skills, onboard equipment, shifts or overtime policy."""
+    try:
+        updated = update_technician(db=db, technician_id=technician_id, payload=payload)
+        return TechnicianResponse.model_validate(updated)
+    except TechnicianNotFoundError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+    except (InvalidTechnicianDataError, ValueError) as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
