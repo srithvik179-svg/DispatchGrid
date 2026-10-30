@@ -19,11 +19,18 @@ from app.scheduling.schemas import (
     SkillFilterRequest,
     JobCandidateEvaluation,
     CombinedQualificationRequest,
+    TravelEstimate,
+    ZoneMatchResult,
+    GeoEligibilityResult,
+    TravelCalculationRequest,
+    TravelCalculationResponse,
 )
 from app.scheduling.service import SchedulingService
 from app.scheduling.loader import load_eligible_technicians
 from app.scheduling.skills import filter_technicians_by_skills
 from app.scheduling.equipment import filter_candidates_for_job
+from app.scheduling.geo import haversine_distance, calculate_travel_minutes
+
 
 
 router = APIRouter()
@@ -239,6 +246,117 @@ def filter_by_qualifications(
         unsupported_skills=unsupported_skills,
         fleet_equipment_inventory=fleet_equipment,
     )
+
+
+@router.post(
+    "/scheduling/travel/estimate",
+    response_model=TravelCalculationResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Calculate Haversine distance and transit duration between coordinates",
+)
+def estimate_travel(req: TravelCalculationRequest) -> TravelCalculationResponse:
+    """
+    Computes deterministic great-circle Haversine distance and transit travel duration
+    based on the supplied coordinates and travel speed (default 30 km/h).
+    """
+    try:
+        dist_km = haversine_distance(req.origin_lat, req.origin_lng, req.destination_lat, req.destination_lng)
+        travel_mins = calculate_travel_minutes(dist_km, speed_kmh=req.speed_kmh or 30.0)
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(e))
+
+    return TravelCalculationResponse(
+        distance_km=dist_km,
+        travel_minutes=travel_mins,
+        speed_kmh=req.speed_kmh or 30.0,
+        origin_lat=req.origin_lat,
+        origin_lng=req.origin_lng,
+        destination_lat=req.destination_lat,
+        destination_lng=req.destination_lng,
+    )
+
+
+@router.get(
+    "/scheduling/travel/home-to-job",
+    response_model=TravelEstimate,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Calculate first-job transit travel from technician home location",
+)
+def get_home_to_job_travel(
+    technician_id: str,
+    job_id: str,
+    speed_kmh: Optional[float] = None,
+    db: Session = Depends(get_db),
+) -> TravelEstimate:
+    """
+    Calculates deterministic transit distance and estimated minutes from technician home to job.
+    """
+    service = SchedulingService(db)
+    try:
+        estimate = service.calculate_home_travel(technician_id=technician_id, job_id=job_id)
+        if speed_kmh and speed_kmh > 0:
+            estimate.speed_kmh = speed_kmh
+            estimate.travel_minutes = calculate_travel_minutes(estimate.distance_km, speed_kmh=speed_kmh)
+        return estimate
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get(
+    "/scheduling/travel/inter-job",
+    response_model=TravelEstimate,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Calculate transit travel between consecutive jobs",
+)
+def get_inter_job_travel(
+    from_job_id: str,
+    to_job_id: str,
+    speed_kmh: Optional[float] = None,
+    db: Session = Depends(get_db),
+) -> TravelEstimate:
+    """
+    Calculates transit distance and duration between consecutive job sites.
+    """
+    service = SchedulingService(db)
+    try:
+        estimate = service.calculate_inter_job_travel(from_job_id=from_job_id, to_job_id=to_job_id)
+        if speed_kmh and speed_kmh > 0:
+            estimate.speed_kmh = speed_kmh
+            estimate.travel_minutes = calculate_travel_minutes(estimate.distance_km, speed_kmh=speed_kmh)
+        return estimate
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
+
+@router.get(
+    "/scheduling/geo-eligibility",
+    response_model=GeoEligibilityResult,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Evaluate technician operational zone certification and travel metrics",
+)
+def get_geo_eligibility(
+    technician_id: str,
+    job_id: str,
+    previous_job_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+) -> GeoEligibilityResult:
+    """
+    Evaluates whether a technician is certified for the job's zone and computes travel metrics.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.get_geo_eligibility(
+            job_id=job_id,
+            technician_id=technician_id,
+            previous_job_id=previous_job_id,
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+
 
 
 

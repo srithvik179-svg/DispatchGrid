@@ -13,6 +13,11 @@ from app.scheduling.schemas import (
     QualificationMatchResult,
     JobCandidateEvaluation,
     CombinedQualificationRequest,
+    TravelEstimate,
+    ZoneMatchResult,
+    GeoEligibilityResult,
+    TravelCalculationRequest,
+    TravelCalculationResponse,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -41,6 +46,17 @@ from app.scheduling.equipment import (
     filter_candidates_for_job,
     filter_all_jobs_candidates,
 )
+from app.scheduling.geo import (
+    EARTH_RADIUS_KM,
+    DEFAULT_TRANSIT_SPEED_KMH,
+    validate_coordinates,
+    haversine_distance,
+    calculate_travel_minutes,
+    check_zone_eligibility,
+    calculate_home_to_job_travel,
+    calculate_inter_job_travel,
+    evaluate_geographic_eligibility,
+)
 
 __all__ = [
     "SchedulingRunConfig",
@@ -57,6 +73,11 @@ __all__ = [
     "QualificationMatchResult",
     "JobCandidateEvaluation",
     "CombinedQualificationRequest",
+    "TravelEstimate",
+    "ZoneMatchResult",
+    "GeoEligibilityResult",
+    "TravelCalculationRequest",
+    "TravelCalculationResponse",
     "get_simulation_clock",
     "get_planning_horizon",
     "load_scheduling_inputs",
@@ -76,4 +97,13 @@ __all__ = [
     "check_technician_qualification",
     "filter_candidates_for_job",
     "filter_all_jobs_candidates",
+    "EARTH_RADIUS_KM",
+    "DEFAULT_TRANSIT_SPEED_KMH",
+    "validate_coordinates",
+    "haversine_distance",
+    "calculate_travel_minutes",
+    "check_zone_eligibility",
+    "calculate_home_to_job_travel",
+    "calculate_inter_job_travel",
+    "evaluate_geographic_eligibility",
 ]

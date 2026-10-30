@@ -97,15 +97,20 @@ class SkillMatchResult(BaseModel):
 
 
 class CandidateTechnicianSummary(BaseModel):
-    """Candidate technician summary containing verified skill proficiencies and operational zones."""
+    """Candidate technician summary containing verified skill proficiencies, equipment, zones, and travel info."""
     id: str
     name: str
     skills: List[str] = Field(default_factory=list)
     equipment: List[str] = Field(default_factory=list)
     eligible_zones: List[str] = Field(default_factory=list)
     home_zone_id: Optional[str] = None
+    home_lat: Optional[float] = None
+    home_lng: Optional[float] = None
+    distance_km: Optional[float] = None
+    travel_minutes: Optional[float] = None
 
     model_config = ConfigDict(from_attributes=True)
+
 
 
 class EquipmentMatchResult(BaseModel):
@@ -192,4 +197,69 @@ class SkillFilterRequest(BaseModel):
     job_id: Optional[str] = None
     required_skills: Optional[List[str]] = None
     technician_ids: Optional[List[str]] = None
+
+
+class TravelEstimate(BaseModel):
+    """Structured deterministic travel calculation between two geographic points."""
+    origin_type: str = Field(..., description="'home' or 'job'")
+    origin_id: str = Field(..., description="Technician ID or origin Job ID")
+    origin_lat: float
+    origin_lng: float
+    destination_job_id: str
+    destination_lat: float
+    destination_lng: float
+    distance_km: float = Field(..., description="Deterministic Haversine distance in kilometers")
+    travel_minutes: float = Field(..., description="Estimated travel time in minutes based on travel speed")
+    speed_kmh: float = Field(default=30.0, description="Assumed average transit velocity in km/h")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ZoneMatchResult(BaseModel):
+    """Detailed validation result verifying technician operational territory against job zone."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    is_eligible: bool
+    job_zone_id: Optional[str] = None
+    eligible_zones: List[str] = Field(default_factory=list)
+    home_zone_id: Optional[str] = None
+    rejection_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class GeoEligibilityResult(BaseModel):
+    """Combined geographical eligibility analysis including zone certification and travel metrics."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    job_id: str
+    is_eligible: bool
+    zone_match: ZoneMatchResult
+    travel_estimate: Optional[TravelEstimate] = None
+    distance_km: Optional[float] = None
+    travel_minutes: Optional[float] = None
+    rejection_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TravelCalculationRequest(BaseModel):
+    """Payload for calculating travel distance and minutes between two coordinates."""
+    origin_lat: float = Field(..., ge=-90.0, le=90.0)
+    origin_lng: float = Field(..., ge=-180.0, le=180.0)
+    destination_lat: float = Field(..., ge=-90.0, le=90.0)
+    destination_lng: float = Field(..., ge=-180.0, le=180.0)
+    speed_kmh: Optional[float] = Field(default=30.0, gt=0.0)
+
+
+class TravelCalculationResponse(BaseModel):
+    """Response containing calculated distance and travel duration."""
+    distance_km: float
+    travel_minutes: float
+    speed_kmh: float
+    origin_lat: float
+    origin_lng: float
+    destination_lat: float
+    destination_lng: float
+
 

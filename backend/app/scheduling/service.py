@@ -1,8 +1,9 @@
 import json
 import uuid
 from datetime import datetime, timezone
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
+
 
 from app.models.job import Job
 from app.models.technician import Technician
@@ -14,6 +15,8 @@ from app.scheduling.schemas import (
     AssignedJobPlan,
     JobSkillCandidates,
     JobCandidateEvaluation,
+    TravelEstimate,
+    GeoEligibilityResult,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -32,6 +35,13 @@ from app.scheduling.equipment import (
     filter_candidates_for_job,
     filter_all_jobs_candidates,
 )
+from app.scheduling.geo import (
+    DEFAULT_TRANSIT_SPEED_KMH,
+    calculate_home_to_job_travel,
+    calculate_inter_job_travel,
+    evaluate_geographic_eligibility,
+)
+
 
 
 def generate_run_id(prefix: str = "RUN") -> str:
@@ -180,6 +190,77 @@ class SchedulingService:
             fleet_equipment_inventory=fleet_equipment,
         )
 
+    def get_travel_model(self) -> Dict[str, Any]:
+        """Retrieve travel model configuration from system metadata."""
+        record = self.db.query(SystemMetadata).filter_by(key="travel_model").first()
+        if record and record.value:
+            try:
+                parsed = json.loads(record.value)
+                if isinstance(parsed, dict):
+                    return parsed
+            except Exception:
+                pass
+        return {"method": "haversine", "speed_kmh": DEFAULT_TRANSIT_SPEED_KMH}
+
+    def get_travel_speed(self) -> float:
+        """Retrieve transit speed in km/h from travel model configuration."""
+        tm = self.get_travel_model()
+        try:
+            return float(tm.get("speed_kmh", DEFAULT_TRANSIT_SPEED_KMH))
+        except (TypeError, ValueError):
+            return DEFAULT_TRANSIT_SPEED_KMH
+
+    def calculate_home_travel(self, technician_id: str, job_id: str) -> TravelEstimate:
+        """Calculate first-job transit distance and minutes from technician home location."""
+        tech = self.db.query(Technician).filter_by(id=technician_id).first()
+        if not tech:
+            raise ValueError(f"Technician with ID '{technician_id}' not found.")
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+        speed = self.get_travel_speed()
+        return calculate_home_to_job_travel(technician=tech, job=job, speed_kmh=speed)
+
+    def calculate_inter_job_travel(self, from_job_id: str, to_job_id: str) -> TravelEstimate:
+        """Calculate transit distance and minutes between consecutive jobs."""
+        from_job = self.db.query(Job).filter_by(id=from_job_id).first()
+        if not from_job:
+            raise ValueError(f"Origin job with ID '{from_job_id}' not found.")
+        to_job = self.db.query(Job).filter_by(id=to_job_id).first()
+        if not to_job:
+            raise ValueError(f"Destination job with ID '{to_job_id}' not found.")
+        speed = self.get_travel_speed()
+        return calculate_inter_job_travel(from_job=from_job, to_job=to_job, speed_kmh=speed)
+
+    def get_geo_eligibility(
+        self,
+        job_id: str,
+        technician_id: str,
+        previous_job_id: Optional[str] = None,
+    ) -> GeoEligibilityResult:
+        """
+        Evaluates technician operational zone certification and computes travel from home or previous job.
+        """
+        tech = self.db.query(Technician).filter_by(id=technician_id).first()
+        if not tech:
+            raise ValueError(f"Technician with ID '{technician_id}' not found.")
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+        prev_job = None
+        if previous_job_id:
+            prev_job = self.db.query(Job).filter_by(id=previous_job_id).first()
+            if not prev_job:
+                raise ValueError(f"Previous job with ID '{previous_job_id}' not found.")
+        speed = self.get_travel_speed()
+        return evaluate_geographic_eligibility(
+            technician=tech,
+            job=job,
+            previous_job=prev_job,
+            speed_kmh=speed,
+        )
+
+
     def initialize_run(
         self,
         config: Optional[SchedulingRunConfig] = None,
@@ -260,6 +341,7 @@ class SchedulingService:
                 "jobs_with_equipment_lacking_candidates": list(skill_only_jobs.keys()),
                 "unsupported_skills": self.get_unsupported_skills(),
                 "fleet_equipment_inventory": self.get_fleet_equipment(),
+                "travel_model": self.get_travel_model(),
                 "mode": config.mode if config else "baseline",
                 "ready_for_optimization": True,
             },
