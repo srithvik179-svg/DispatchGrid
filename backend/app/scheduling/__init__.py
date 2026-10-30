@@ -53,6 +53,9 @@ from app.scheduling.schemas import (
     HardConstraintViolation,
     ScheduleScoreResult,
     ScoreEvaluationRequest,
+    JobPriorityProfile,
+    CompetingJobResolution,
+    ConflictPairEvaluationRequest,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -129,6 +132,12 @@ from app.scheduling.scoring import (
     calculate_assignment_churn_penalty,
     validate_schedule_hard_constraints,
     evaluate_schedule_score,
+)
+from app.scheduling.priority import (
+    calculate_job_priority_profile,
+    prioritize_jobs_with_scarcity,
+    resolve_competing_jobs,
+    compare_candidate_assignments,
 )
 
 __all__ = [
@@ -240,4 +249,11 @@ __all__ = [
     "calculate_assignment_churn_penalty",
     "validate_schedule_hard_constraints",
     "evaluate_schedule_score",
+    "JobPriorityProfile",
+    "CompetingJobResolution",
+    "ConflictPairEvaluationRequest",
+    "calculate_job_priority_profile",
+    "prioritize_jobs_with_scarcity",
+    "resolve_competing_jobs",
+    "compare_candidate_assignments",
 ]

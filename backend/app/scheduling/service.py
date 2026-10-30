@@ -5,6 +5,8 @@ from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Session
 
 
+from app.schemas.job import JobResponse
+from app.schemas.technician import TechnicianResponse
 from app.models.job import Job
 from app.models.technician import Technician
 from app.models.assignment import Assignment
@@ -37,6 +39,8 @@ from app.scheduling.schemas import (
     TechnicianScheduleResponse,
     ObjectiveWeightsConfig,
     ScheduleScoreResult,
+    JobPriorityProfile,
+    CompetingJobResolution,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
@@ -1094,6 +1098,78 @@ class SchedulingService:
             weights=weights,
             as_of=as_of_dt,
         )
+
+    # =========================================================================
+    # PHASE 24 – Priority-Aware Optimisation & Conflict Arbitration
+    # =========================================================================
+
+    def get_job_priority_profile(self, job_id: str) -> JobPriorityProfile:
+        """
+        Calculates the multi-criteria priority, technician scarcity, and window tightness profile for a job.
+        """
+        from app.scheduling.priority import calculate_job_priority_profile
+
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job {job_id} not found")
+
+        technicians = self.db.query(Technician).all()
+        job_resp = JobResponse.model_validate(job)
+        tech_resps = [TechnicianResponse.model_validate(t) for t in technicians]
+
+        return calculate_job_priority_profile(
+            job=job_resp,
+            technicians=tech_resps,
+            unsupported_skills=self.get_unsupported_skills(),
+        )
+
+    def resolve_competing_jobs(self, job_id_a: str, job_id_b: str) -> CompetingJobResolution:
+        """
+        Deterministically arbitrates between two competing jobs using the documented 7-tier priority hierarchy.
+        """
+        from app.scheduling.priority import resolve_competing_jobs
+
+        job_a = self.db.query(Job).filter_by(id=job_id_a).first()
+        if not job_a:
+            raise ValueError(f"Job {job_id_a} not found")
+
+        job_b = self.db.query(Job).filter_by(id=job_id_b).first()
+        if not job_b:
+            raise ValueError(f"Job {job_id_b} not found")
+
+        technicians = self.db.query(Technician).all()
+        job_a_resp = JobResponse.model_validate(job_a)
+        job_b_resp = JobResponse.model_validate(job_b)
+        tech_resps = [TechnicianResponse.model_validate(t) for t in technicians]
+
+        return resolve_competing_jobs(
+            job_a=job_a_resp,
+            job_b=job_b_resp,
+            technicians=tech_resps,
+            unsupported_skills=self.get_unsupported_skills(),
+        )
+
+    def get_prioritized_pending_jobs(self) -> List[JobPriorityProfile]:
+        """
+        Returns all pending jobs ordered by the documented 7-tier priority and scarcity hierarchy.
+        """
+        from app.scheduling.priority import prioritize_jobs_with_scarcity, calculate_job_priority_profile
+
+        inputs = self.load_inputs()
+        sorted_jobs = prioritize_jobs_with_scarcity(
+            jobs=inputs.pending_jobs,
+            technicians=inputs.technicians,
+            unsupported_skills=self.get_unsupported_skills(),
+        )
+
+        return [
+            calculate_job_priority_profile(
+                job=j,
+                technicians=inputs.technicians,
+                unsupported_skills=self.get_unsupported_skills(),
+            )
+            for j in sorted_jobs
+        ]
 
 
 

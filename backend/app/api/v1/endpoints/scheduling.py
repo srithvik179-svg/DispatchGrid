@@ -45,6 +45,9 @@ from app.scheduling.schemas import (
     ObjectiveWeightsConfig,
     ScheduleScoreResult,
     ScoreEvaluationRequest,
+    JobPriorityProfile,
+    CompetingJobResolution,
+    ConflictPairEvaluationRequest,
 )
 
 from app.scheduling.service import SchedulingService
@@ -1081,6 +1084,108 @@ def evaluate_schedule_score_endpoint(
         as_of=as_of,
         respect_existing_assignments=respect_existing,
     )
+
+
+# =========================================================================
+# PHASE 24 – Priority-Aware Optimisation & Conflict Arbitration Endpoints
+# =========================================================================
+
+@router.get(
+    "/scheduling/priority/job/{job_id}",
+    response_model=JobPriorityProfile,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Get multi-criteria priority, technician scarcity, and window tightness profile for a job",
+)
+@router.get(
+    "/jobs/{job_id}/priority-profile",
+    response_model=JobPriorityProfile,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_job_priority_profile_endpoint(
+    job_id: str,
+    db: Session = Depends(get_db),
+) -> JobPriorityProfile:
+    """
+    Retrieves the 7-tier priority profile for a job, evaluating technician scarcity
+    (qualified technicians with skills, equipment, and zone eligibility), time window tightness,
+    slack buffer, and SLA deadlines.
+    """
+    service = SchedulingService(db)
+    try:
+        return service.get_job_priority_profile(job_id)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.post(
+    "/schedule/priority/resolve",
+    response_model=CompetingJobResolution,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Deterministically arbitrate between two competing jobs with full explanatory rationale",
+)
+@router.post(
+    "/scheduling/priority/resolve",
+    response_model=CompetingJobResolution,
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def resolve_competing_jobs_endpoint(
+    req: ConflictPairEvaluationRequest,
+    db: Session = Depends(get_db),
+) -> CompetingJobResolution:
+    """
+    Arbitrates between two competing jobs that contend for identical technician capabilities,
+    territories, or overlapping time windows.
+    Applies the documented 7-tier tie-breaking rules:
+    1. Priority Level (Urgent > High > Medium > Low)
+    2. Technician Scarcity (fewer qualified technicians wins)
+    3. Time Window Tightness (tighter window wins)
+    4. Soft SLA Deadline (earliest deadline wins)
+    5. Hard Window End (earliest expiration wins)
+    6. Window Start (earliest opening wins)
+    7. Alphanumeric Job ID deterministic tie-breaker
+    """
+    service = SchedulingService(db)
+    try:
+        return service.resolve_competing_jobs(req.job_id_a, req.job_id_b)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
+
+
+@router.get(
+    "/schedule/priority/ordered",
+    response_model=list[JobPriorityProfile],
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    summary="Get all pending jobs ordered by priority-aware multi-criteria hierarchy",
+)
+@router.get(
+    "/scheduling/priority/ordered",
+    response_model=list[JobPriorityProfile],
+    status_code=status.HTTP_200_OK,
+    tags=["Schedule Operations"],
+    include_in_schema=False,
+)
+def get_prioritized_pending_jobs_endpoint(
+    db: Session = Depends(get_db),
+) -> list[JobPriorityProfile]:
+    """
+    Returns all pending jobs ranked by the documented 7-tier priority and technician scarcity ordering.
+    """
+    service = SchedulingService(db)
+    return service.get_prioritized_pending_jobs()
+
 
 
 

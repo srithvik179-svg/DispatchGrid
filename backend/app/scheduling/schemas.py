@@ -789,6 +789,46 @@ class ScoreEvaluationRequest(BaseModel):
     respect_existing_assignments: bool = True
 
 
+# =========================================================================
+# PHASE 24 – Priority-Aware Optimisation Schemas
+# =========================================================================
+
+class JobPriorityProfile(BaseModel):
+    """Multi-dimensional priority and scarcity profile for dispatch scheduling."""
+    job_id: str
+    priority: int = Field(..., description="1=Urgent, 2=High, 3=Medium, 4=Low")
+    priority_label: str
+    qualified_technicians_count: int = Field(..., description="Technician scarcity: count of qualified candidates in fleet")
+    qualified_technician_ids: List[str] = Field(default_factory=list)
+    window_duration_ratio: float = Field(..., description="Tightness ratio: duration_minutes / window_minutes (near 1.0 = zero flexibility)")
+    window_slack_minutes: float = Field(..., description="Available slack buffer: window_minutes - duration_minutes")
+    sla_deadline: datetime
+    time_window_start: datetime
+    time_window_end: datetime
+    tie_breaker_key: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CompetingJobResolution(BaseModel):
+    """Deterministic resolution and explanation for competing high-priority jobs."""
+    winner_job_id: str
+    loser_job_id: str
+    deciding_factor: str = Field(..., description="'PRIORITY_LEVEL', 'TECHNICIAN_SCARCITY', 'WINDOW_TIGHTNESS', 'SLA_DEADLINE', 'HARD_WINDOW_END', 'WINDOW_START', 'DETERMINISTIC_ID'")
+    explanation: str
+    job_a_profile: JobPriorityProfile
+    job_b_profile: JobPriorityProfile
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ConflictPairEvaluationRequest(BaseModel):
+    """Request payload to analyze priority arbitration between two competing jobs."""
+    job_id_a: str
+    job_id_b: str
+
+
+
 
 
 
