@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -9,8 +10,74 @@ from app.schemas.eligibility import (
     EligibilityCheckResponse,
 )
 from app.services.eligibility_service import validate_job_technician_eligibility
+from app.scheduling.schemas import (
+    SchedulingRunConfig,
+    SchedulingInput,
+    SchedulingResult,
+    SimulationClockResponse,
+)
+from app.scheduling.service import SchedulingService
 
 router = APIRouter()
+
+
+@router.get(
+    "/scheduling/clock",
+    response_model=SimulationClockResponse,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Get simulation reference clock and planning horizon",
+)
+def get_clock(db: Session = Depends(get_db)) -> SimulationClockResponse:
+    """
+    Returns the authoritative simulation reference clock ('as_of') and the active planning horizon.
+    """
+    service = SchedulingService(db)
+    as_of = service.get_clock()
+    h_start, h_end = service.get_horizon()
+    return SimulationClockResponse(
+        as_of=as_of,
+        horizon_start=h_start,
+        horizon_end=h_end,
+        time_zone="Asia/Kolkata (+05:30)",
+    )
+
+
+@router.get(
+    "/scheduling/inputs",
+    response_model=SchedulingInput,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Load and inspect current scheduling input data",
+)
+def get_scheduling_inputs(
+    db: Session = Depends(get_db),
+) -> SchedulingInput:
+    """
+    Loads all pending jobs, available technicians, and existing protected assignments
+    from the database without modifying any state.
+    """
+    service = SchedulingService(db)
+    return service.load_inputs()
+
+
+@router.post(
+    "/scheduling/runs/init",
+    response_model=SchedulingResult,
+    status_code=status.HTTP_201_CREATED,
+    tags=["Scheduling Engine"],
+    summary="Initialize a scheduling run session",
+)
+def initialize_scheduling_run(
+    config: Optional[SchedulingRunConfig] = None,
+    db: Session = Depends(get_db),
+) -> SchedulingResult:
+    """
+    Initializes a new scheduling run session, generates a unique run ID, loads inputs,
+    and locks in pre-existing assignments without altering any database records.
+    """
+    service = SchedulingService(db)
+    return service.initialize_run(config=config)
 
 
 @router.post(
