@@ -80,3 +80,53 @@ class SchedulingResult(BaseModel):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class SkillMatchResult(BaseModel):
+    """Detailed skill validation result for an individual technician evaluated against a job."""
+    technician_id: str
+    technician_name: Optional[str] = None
+    is_eligible: bool
+    matched_skills: List[str] = Field(default_factory=list)
+    missing_skills: List[str] = Field(default_factory=list)
+    has_unsupported_skills: bool = False
+    unsupported_skills: List[str] = Field(default_factory=list)
+    rejection_reason: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class CandidateTechnicianSummary(BaseModel):
+    """Candidate technician summary containing verified skill proficiencies and operational zones."""
+    id: str
+    name: str
+    skills: List[str] = Field(default_factory=list)
+    eligible_zones: List[str] = Field(default_factory=list)
+    home_zone_id: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class JobSkillCandidates(BaseModel):
+    """Structured candidates analysis for a job based strictly on skill proficiencies."""
+    job_id: str
+    job_title: Optional[str] = None
+    required_skills: List[str] = Field(default_factory=list)
+    has_unsupported_skills: bool = False
+    unsupported_skills: List[str] = Field(default_factory=list)
+    candidate_count: int = 0
+    is_assignable: bool = True
+    eligible_candidates: List[CandidateTechnicianSummary] = Field(default_factory=list)
+    rejected_candidates: List[SkillMatchResult] = Field(default_factory=list)
+    rejection_summary: Dict[str, str] = Field(default_factory=dict, description="Map of technician_id -> rejection reason")
+    reason_if_unassignable: Optional[str] = None
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class SkillFilterRequest(BaseModel):
+    """Request payload for filtering candidate technicians by custom skill lists or job ID."""
+    job_id: Optional[str] = None
+    required_skills: Optional[List[str]] = None
+    technician_ids: Optional[List[str]] = None
+

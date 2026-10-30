@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union, Dict
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
@@ -15,10 +15,15 @@ from app.scheduling.schemas import (
     SchedulingInput,
     SchedulingResult,
     SimulationClockResponse,
+    JobSkillCandidates,
+    SkillFilterRequest,
 )
 from app.scheduling.service import SchedulingService
+from app.scheduling.loader import load_eligible_technicians
+from app.scheduling.skills import filter_technicians_by_skills
 
 router = APIRouter()
+
 
 
 @router.get(
@@ -78,6 +83,80 @@ def initialize_scheduling_run(
     """
     service = SchedulingService(db)
     return service.initialize_run(config=config)
+
+
+@router.get(
+    "/scheduling/candidates/skills",
+    response_model=Union[JobSkillCandidates, Dict[str, JobSkillCandidates]],
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Get candidate technicians filtered by job required skills",
+)
+def get_skill_candidates(
+    job_id: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    """
+    Returns candidate technicians strictly filtered by required skill matching.
+    If job_id is specified, returns the analysis for that job.
+    Otherwise, returns a map of all pending jobs to their skill candidate analysis.
+    """
+    service = SchedulingService(db)
+    if job_id:
+        try:
+            return service.get_candidates_by_skill(job_id)
+        except ValueError as e:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
+    return service.get_all_skill_candidates()
+
+
+@router.post(
+    "/scheduling/candidates/skills/filter",
+    response_model=JobSkillCandidates,
+    status_code=status.HTTP_200_OK,
+    tags=["Scheduling Engine"],
+    summary="Evaluate technician skill compatibility against job or custom skills",
+)
+def filter_by_skills(
+    req: SkillFilterRequest,
+    db: Session = Depends(get_db),
+) -> JobSkillCandidates:
+    """
+    Evaluates candidate technicians against specified skills or an existing job ID.
+    """
+    service = SchedulingService(db)
+    req_skills = req.required_skills or []
+    target_job_id = req.job_id or "CUSTOM-SKILL-QUERY"
+    target_job_title = "Custom skill evaluation"
+
+    if req.job_id:
+        job = db.query(Job).filter_by(id=req.job_id).first()
+        if not job:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Job with ID '{req.job_id}' not found",
+            )
+        target_job_title = job.title
+        if not req.required_skills:
+            req_skills = job.required_skills or []
+
+    all_techs = load_eligible_technicians(db)
+    if req.technician_ids:
+        tech_id_set = set(req.technician_ids)
+        all_techs = [t for t in all_techs if t.id in tech_id_set]
+
+    unsupported = service.get_unsupported_skills()
+    fake_job = {
+        "id": target_job_id,
+        "title": target_job_title,
+        "required_skills": req_skills,
+    }
+    return filter_technicians_by_skills(
+        job=fake_job,
+        technicians=all_techs,
+        unsupported_skills=unsupported,
+    )
+
 
 
 @router.post(

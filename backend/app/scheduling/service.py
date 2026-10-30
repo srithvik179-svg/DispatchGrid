@@ -1,18 +1,30 @@
+import json
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
+from typing import Optional, List, Dict
 from sqlalchemy.orm import Session
 
+from app.models.job import Job
+from app.models.technician import Technician
+from app.models.system import SystemMetadata
 from app.scheduling.schemas import (
     SchedulingRunConfig,
     SchedulingInput,
     SchedulingResult,
     AssignedJobPlan,
+    JobSkillCandidates,
 )
 from app.scheduling.loader import (
     get_simulation_clock,
     get_planning_horizon,
     load_scheduling_inputs,
+    load_pending_jobs,
+    load_eligible_technicians,
+)
+from app.scheduling.skills import (
+    DEFAULT_UNSUPPORTED_SKILLS,
+    filter_technicians_by_skills,
+    filter_all_jobs_by_skills,
 )
 
 
@@ -34,6 +46,7 @@ class SchedulingService:
       - Loading scheduling inputs (pending jobs, eligible technicians, existing assignments).
       - Respecting simulation reference clock and planning horizons.
       - Generating run tracking IDs.
+      - Filtering candidates by certified skill proficiencies and detecting unsupported requirements.
       - Constructing standardized scheduling plan results.
       - Guaranteeing that pre-existing locked/in-progress assignments are strictly preserved.
     """
@@ -57,6 +70,18 @@ class SchedulingService:
             end_override=end_override,
         )
 
+    def get_unsupported_skills(self) -> List[str]:
+        """Retrieve unsupported skills defined in system metadata or fallback defaults."""
+        record = self.db.query(SystemMetadata).filter_by(key="unsupported_skills").first()
+        if record and record.value:
+            try:
+                parsed = json.loads(record.value)
+                if isinstance(parsed, list):
+                    return parsed
+            except Exception:
+                pass
+        return list(DEFAULT_UNSUPPORTED_SKILLS)
+
     def load_inputs(
         self,
         run_id: Optional[str] = None,
@@ -67,6 +92,39 @@ class SchedulingService:
         """
         active_run_id = run_id or generate_run_id()
         return load_scheduling_inputs(self.db, run_id=active_run_id, config=config)
+
+    def get_candidates_by_skill(self, job_id: str) -> JobSkillCandidates:
+        """
+        Evaluates candidate technicians strictly by skills for a given job ID.
+        Identifies missing skills, handles unsupported high_voltage requirements,
+        and constructs structured rejection reasons.
+        """
+        job = self.db.query(Job).filter_by(id=job_id).first()
+        if not job:
+            raise ValueError(f"Job with ID '{job_id}' not found.")
+
+        technicians = load_eligible_technicians(self.db)
+        unsupported = self.get_unsupported_skills()
+
+        return filter_technicians_by_skills(
+            job=job,
+            technicians=technicians,
+            unsupported_skills=unsupported,
+        )
+
+    def get_all_skill_candidates(self) -> Dict[str, JobSkillCandidates]:
+        """
+        Evaluates candidate technicians by skills for all pending jobs in the database.
+        """
+        jobs = load_pending_jobs(self.db)
+        technicians = load_eligible_technicians(self.db)
+        unsupported = self.get_unsupported_skills()
+
+        return filter_all_jobs_by_skills(
+            jobs=jobs,
+            technicians=technicians,
+            unsupported_skills=unsupported,
+        )
 
     def initialize_run(
         self,
@@ -106,7 +164,13 @@ class SchedulingService:
 
         total_evaluated_jobs = len(inputs.existing_assignments) + len(inputs.pending_jobs)
 
-        # 3. Assemble standardized SchedulingResult
+        # 3. Analyze skill-based candidate availability
+        skill_analysis = self.get_all_skill_candidates()
+        unassignable_by_skills = [
+            jid for jid, cand in skill_analysis.items() if not cand.is_assignable
+        ]
+
+        # 4. Assemble standardized SchedulingResult
         result = SchedulingResult(
             run_id=run_id,
             status="initialized",
@@ -124,6 +188,9 @@ class SchedulingService:
                 "technicians_available": inputs.technicians_count,
                 "locked_assignments_count": len(preserved_plans),
                 "unassigned_backlog_count": len(unassigned_job_ids),
+                "unassignable_skills_jobs_count": len(unassignable_by_skills),
+                "unassignable_skills_jobs": unassignable_by_skills,
+                "unsupported_skills": self.get_unsupported_skills(),
                 "mode": config.mode if config else "baseline",
                 "ready_for_optimization": True,
             },
